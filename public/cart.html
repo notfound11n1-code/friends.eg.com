@@ -1,0 +1,162 @@
+﻿<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title data-i18n="title.cart">FRIENDS | سلة المشتريات</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Changa:wght@400;600;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="cart">
+  <div class="announcement">
+    <div class="container">
+      <div><strong data-i18n="announcement.processing">تجهيز الطلبات</strong> <span data-i18n="announcement.processing_detail">خلال 2-4 ساعات.</span></div>
+      <div><span data-i18n="label.customer_service">خدمة العملاء:</span> 01000000000</div>
+    </div>
+  </div>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <div class="logo">
+          <img src="images/logo-pharmaplast2.png" alt="Friends Logo" />
+        </div>
+        <div class="brand-text">
+          <h1>FRIENDS</h1>
+          <p data-i18n="brand.tagline">Friend For Medical Supplies</p>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <a class="nav-link" href="index.html"><span class="nav-icon">⌂</span><span data-i18n="nav.home">الرئيسية</span></a>
+        <a class="nav-link" href="index.html#products"><span class="nav-icon">◫</span><span data-i18n="nav.products">المنتجات</span></a>
+        <a class="nav-link" href="track.html"><span class="nav-icon">◎</span><span data-i18n="nav.track">تتبع الطلب</span></a>
+        <a class="nav-link" href="cart.html"><span class="nav-icon">🛒</span><span data-i18n="nav.cart">السلة</span></a>
+      </nav>
+      <div class="header-actions">
+        <div class="auth-links" id="authLinks">
+          <a class="btn ghost" href="auth.html" data-i18n="nav.login">تسجيل دخول</a>
+          <a class="btn primary" href="auth.html#register" data-i18n="nav.register">إنشاء حساب</a>
+          <a class="btn ghost" href="admin.html" data-i18n="nav.admin">لوحة الأدمن</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Cart Section -->
+    <section class="section alt">
+      <div class="container">
+        <div class="section-header">
+          <h2 data-i18n="cart.title">سلة الطلبات</h2>
+          <p data-i18n="cart.subtitle">تأكد من التفاصيل قبل إرسال الطلب عبر واتساب.</p>
+        </div>
+        <div class="cart-layout">
+          <div class="cart-items" id="cartItems"></div>
+          <aside class="cart-summary">
+            <h3 data-i18n="cart.summary">ملخص الطلب</h3>
+            <div class="summary-row">
+              <span data-i18n="cart.subtotal">الإجمالي الفرعي</span>
+              <strong id="cartSubtotal">0</strong>
+            </div>
+            <div class="summary-row">
+              <span data-i18n="cart.shipping">الشحن</span>
+              <strong id="cartShipping">0</strong>
+            </div>
+            <div class="summary-row">
+              <span data-i18n="cart.discount">الخصم</span>
+              <strong id="cartDiscount">0</strong>
+            </div>
+            <div class="summary-row">
+              <span data-i18n="cart.total">الإجمالي</span>
+              <strong id="cartTotal">0</strong>
+            </div>
+            <label class="input-label" data-i18n="cart.discount_code">كود الخصم</label>
+            <div class="coupon-row">
+              <input id="discountCode" type="text" placeholder="اكتب الكود هنا" data-i18n-placeholder="cart.discount_code_placeholder" />
+              <button type="button" id="applyCouponBtn" class="btn ghost">تطبيق</button>
+            </div>
+            <div id="couponMsg" class="note"></div>
+            <label class="input-label" data-i18n="cart.recipient_name">اسم المستلم</label>
+            <input id="customerName" type="text" placeholder="الاسم بالكامل" data-i18n-placeholder="cart.recipient_name_placeholder" autocomplete="name" />
+
+            <label class="input-label" data-i18n="cart.phone">رقم الهاتف</label>
+            <input id="customerPhone" type="tel" placeholder="01XXXXXXXXX" data-i18n-placeholder="cart.phone_placeholder" inputmode="numeric" autocomplete="tel" />
+
+            <label class="input-label" data-i18n="cart.address">العنوان</label>
+            <input id="customerAddress" type="text" placeholder="المدينة - الشارع - رقم المبنى" data-i18n-placeholder="cart.address_placeholder" autocomplete="street-address" />
+
+            <label class="input-label" data-i18n="cart.notes">ملاحظات إضافية</label>
+            <input id="customerNotes" type="text" placeholder="اختياري" data-i18n-placeholder="cart.notes_placeholder" />
+
+            <label class="input-label" data-i18n="cart.payment_method">طريقة الدفع</label>
+            <select id="paymentMethod" class="select-input">
+              <option value="" data-i18n="cart.payment_select">اختر طريقة الدفع</option>
+              <option value="wallet" data-provider="Vodafone Cash" data-i18n="payment.wallet_vodafone">محفظة إلكترونية - Vodafone Cash</option>
+              <option value="wallet" data-provider="Orange Cash" data-i18n="payment.wallet_orange">محفظة إلكترونية - Orange Cash</option>
+              <option value="wallet" data-provider="Etisalat Cash" data-i18n="payment.wallet_etisalat">محفظة إلكترونية - Etisalat Cash</option>
+              <option value="wallet" data-provider="WE Pay" data-i18n="payment.wallet_we">محفظة إلكترونية - WE Pay</option>
+              <option value="instapay" data-provider="InstaPay" data-i18n="payment.instapay">InstaPay</option>
+            </select>
+
+            <div class="payment-box" id="paymentBox">
+              <p class="note" id="paymentHint" data-i18n="payment.hint">اختر طريقة الدفع لعرض رقم التحويل.</p>
+              <p><strong data-i18n="payment.transfer_number">رقم التحويل:</strong> <span id="paymentTransferTo">-</span></p>
+              <p><strong data-i18n="payment.transfer_account">الحساب:</strong> <span id="paymentTransferAccount">-</span></p>
+            </div>
+
+            <label class="input-label" data-i18n="payment.transfer_ref">مرجع التحويل (اختياري)</label>
+            <input id="transferRef" type="text" placeholder="اكتب رقم مرجع العملية" data-i18n-placeholder="payment.transfer_ref_placeholder" />
+
+            <label class="input-label" data-i18n="payment.transfer_proof">صورة التحويل</label>
+            <input id="transferProof" type="file" accept="image/*" />
+            <img id="transferPreview" class="admin-preview is-empty" alt="إثبات التحويل" data-i18n-alt="payment.transfer_proof" />
+
+            <button class="btn primary" id="confirmOrderBtn" data-i18n="action.confirm_order">تأكيد الطلب</button>
+            <p class="note" id="orderMsg" data-i18n="cart.confirm_note">بعد التأكي سيتم التواصل معك.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Floating Cart Button -->
+  <a class="cart-fab" id="cartFab" href="cart.html" aria-label="سلة المشتريات" data-i18n-aria="label.cart_aria">
+    <span class="cart-count" id="cartCount">0</span>
+    🛒
+  </a>
+
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="badge">FRIENDS</div>
+        <p data-i18n="footer.cart_about">تجربة شراء سريعة وآمنة.</p>
+      </div>
+      <div>
+        <h4 data-i18n="footer.cart_info_title">معلومات</h4>
+        <p data-i18n="footer.cart_info_payment">طرق الدفع عند الاستلام او عند التاكيد.</p>
+        <p data-i18n="footer.cart_info_return">سياسة الاسترجاع خلال 7 أيام.</p>
+      </div>
+      <div>
+        <h4 data-i18n="footer.support_title">الدعم</h4>
+        <p><span data-i18n="label.whatsapp">رقم واتساب</span> | +201061806140</p>
+        <p>hello@friends.store</p>
+      </div>
+    </div>
+  </footer>
+
+  <nav class="mobile-tabs" aria-label="Mobile Navigation">
+    <a class="mobile-tab" href="index.html"><span>⌂</span><small data-i18n="nav.home">الرئيسية</small></a>
+    <a class="mobile-tab" href="track.html"><span>◎</span><small data-i18n="nav.track">تتبع</small></a>
+    <a class="mobile-tab" href="auth.html"><span>◉</span><small data-i18n="nav.account">حسابي</small></a>
+  </nav>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
+
+
+

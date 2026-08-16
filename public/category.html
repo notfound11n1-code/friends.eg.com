@@ -1,0 +1,116 @@
+﻿<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title data-i18n="title.category">FRIENDS | صفحة القسم</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Changa:wght@400;600;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="category">
+  <div class="announcement">
+    <div class="container">
+      <div><strong data-i18n="announcement.week_offers">عروض الأسبوع</strong> <span data-i18n="announcement.week_offers_detail">خصومات حتى 25% على مختاراتنا.</span></div>
+      <div><span data-i18n="label.customer_service">خدمة العملاء:</span> 01000000000</div>
+    </div>
+  </div>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <div class="logo">
+          <img src="images/logo-pharmaplast2.png" alt="Friends Logo" />
+        </div>
+        <div class="brand-text">
+          <h1>FRIENDS</h1>
+          <p data-i18n="brand.tagline">Friend For Medical Supplies</p>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <a class="nav-link" href="index.html"><span class="nav-icon">⌂</span><span data-i18n="nav.home">الرئيسية</span></a>
+        <a class="nav-link" href="index.html#categories"><span class="nav-icon">▦</span><span data-i18n="nav.categories">الأقسام</span></a>
+        <a class="nav-link" href="track.html"><span class="nav-icon">◎</span><span data-i18n="nav.track">تتبع الطلب</span></a>
+        <a class="nav-link" href="cart.html"><span class="nav-icon">🛒</span><span data-i18n="nav.cart">السلة</span></a>
+      </nav>
+      <div class="header-actions">
+        <div class="auth-links" id="authLinks">
+          <a class="btn ghost" href="auth.html" data-i18n="nav.login">تسجيل دخول</a>
+          <a class="btn primary" href="auth.html#register" data-i18n="nav.register">إنشاء حساب</a>
+          <a class="btn ghost" href="admin.html" data-i18n="nav.admin">لوحة الأدمن</a>
+        </div>
+        <div class="search-box">
+          <div class="search-shell">
+            <span class="search-icon">⌕</span>
+            <input id="searchInput" type="text" list="searchSuggestions" placeholder="ابحث داخل القسم..." data-i18n-placeholder="search.placeholder.category" />
+            <datalist id="searchSuggestions"></datalist>
+            <button class="search-clear" id="searchClear" type="button" aria-label="مسح البحث" data-i18n-aria="search.clear">✕</button>
+          </div>
+          <p class="search-meta" id="searchMeta" data-i18n="search.hint.category">ابحث بالاسم أو الوصف أو الكود.</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Category Header -->
+    <section class="section alt">
+      <div class="container">
+        <div class="section-header">
+          <h2 id="categoryTitle" data-i18n="section.category.title">القسم</h2>
+          <p data-i18n="section.category.subtitle">يعرض المنتجات الخاصة بهذا القسم فقط.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Category Products -->
+    <section class="section">
+      <div class="container">
+        <div class="grid products" id="categoryGrid">
+          <!-- يتم توليد المنتجات تلقائيًا حسب القسم من js/app.js -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Floating Cart Button -->
+  <a class="cart-fab" id="cartFab" href="cart.html" aria-label="سلة المشتريات" data-i18n-aria="label.cart_aria">
+    <span class="cart-count" id="cartCount">0</span>
+    🛒
+  </a>
+
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="badge">FRIENDS</div>
+        <p data-i18n="footer.category_about">منتجات موثوقة باختيارات طبية معتمدة.</p>
+      </div>
+      <div>
+        <h4 data-i18n="footer.category_links_title">الأقسام</h4>
+        <p><a href="index.html#categories" data-i18n="footer.category_links_all">عرض كل الأقسام</a></p>
+        <p><a href="index.html#products" data-i18n="footer.category_links_products">عرض المنتجات</a></p>
+      </div>
+      <div>
+        <h4 data-i18n="footer.support_title">الدعم</h4>
+        <p><span data-i18n="label.whatsapp">رقم واتساب</span> | +201061806140</p>
+        <p data-i18n="footer.category_support_return">سياسة الاستبدال خلال 7 أيام.</p>
+      </div>
+    </div>
+  </footer>
+
+  <nav class="mobile-tabs" aria-label="Mobile Navigation">
+    <a class="mobile-tab" href="index.html"><span>⌂</span><small data-i18n="nav.home">الرئيسية</small></a>
+    <a class="mobile-tab active" href="index.html#categories"><span>▦</span><small data-i18n="nav.categories">الأقسام</small></a>
+    <a class="mobile-tab" href="track.html"><span>◎</span><small data-i18n="nav.track">تتبع</small></a>
+    <a class="mobile-tab" href="auth.html"><span>◉</span><small data-i18n="nav.account">حسابي</small></a>
+  </nav>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
+
+
+

@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
@@ -6,39 +6,62 @@
   <title data-i18n="title.cart">FRIENDS | سلة المشتريات</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Changa:wght@400;600;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Harmattan:wght@400;600;700&family=Reem+Kufi:wght@400;500;600;700&family=Changa:wght@400;600;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body data-page="cart">
+  <!-- Announcement -->
   <div class="announcement">
-    <div class="container">
-      <div><strong data-i18n="announcement.processing">تجهيز الطلبات</strong> <span data-i18n="announcement.processing_detail">خلال 2-4 ساعات.</span></div>
-      <div><span data-i18n="label.customer_service">خدمة العملاء:</span> 01000000000</div>
+    <div class="container announcement-inner">
+      <div class="announcement-brand-slogan">
+        <span class="announcement-pulse-dot"></span>
+        <strong class="slogan-text" data-i18n="announcement.slogan">ثقتكم .. مسؤوليتنا الطبية</strong>
+        <span class="announcement-sep">•</span>
+        <span class="announcement-sub" data-i18n="announcement.tagline">مستلزمات وأجهزة طبية أصلية 100%</span>
+      </div>
+      <div class="announcement-quick-info">
+        <a href="tel:01061806140" class="announcement-contact" dir="ltr">
+          <span class="contact-icon">📞</span>
+          <span>01061806140</span>
+        </a>
+        <span class="announcement-sep">•</span>
+        <div class="announcement-tag">
+          <span>🚚</span> <span data-i18n="announcement.fast_delivery">توصيل سريع</span>
+        </div>
+      </div>
     </div>
   </div>
+
   <!-- Header -->
   <header class="site-header">
     <div class="container header-inner">
-      <div class="brand">
+      <a class="brand" href="index.html" aria-label="Friends Medical Supplies">
         <div class="logo">
-          <img src="images/logo-pharmaplast2.png" alt="Friends Logo" />
+          <img src="images/friends-logo.svg" alt="Friends For Medical Supplies - فريندز للمستلزمات الطبية" />
         </div>
-        <div class="brand-text">
-          <h1>FRIENDS</h1>
-          <p data-i18n="brand.tagline">Friend For Medical Supplies</p>
-        </div>
-      </div>
+      </a>
+
       <nav class="main-nav">
         <a class="nav-link" href="index.html"><span class="nav-icon">⌂</span><span data-i18n="nav.home">الرئيسية</span></a>
+        <a class="nav-link" href="index.html#offers"><span class="nav-icon-badge">%</span><span data-i18n="nav.offers">العروض</span></a>
+        <a class="nav-link" href="index.html#categories"><span class="nav-icon">▦</span><span data-i18n="nav.categories">الأقسام</span></a>
         <a class="nav-link" href="index.html#products"><span class="nav-icon">◫</span><span data-i18n="nav.products">المنتجات</span></a>
         <a class="nav-link" href="track.html"><span class="nav-icon">◎</span><span data-i18n="nav.track">تتبع الطلب</span></a>
-        <a class="nav-link" href="cart.html"><span class="nav-icon">🛒</span><span data-i18n="nav.cart">السلة</span></a>
       </nav>
+
       <div class="header-actions">
-        <div class="auth-links" id="authLinks">
-          <a class="btn ghost" href="auth.html" data-i18n="nav.login">تسجيل دخول</a>
-          <a class="btn primary" href="auth.html#register" data-i18n="nav.register">إنشاء حساب</a>
-          <a class="btn ghost" href="admin.html" data-i18n="nav.admin">لوحة الأدمن</a>
+        <div class="header-user-actions">
+          <div class="auth-links" id="authLinks">
+            <a class="btn ghost" href="auth.html" data-i18n="nav.login">تسجيل دخول</a>
+            <a class="btn primary" href="auth.html#register" data-i18n="nav.register">إنشاء حساب</a>
+          </div>
+          <a class="header-cart-btn active" href="cart.html" aria-label="عربة التسوق">
+            <span class="cart-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+              <span class="cart-count-badge" id="headerCartCount" style="display:none;">0</span>
+            </span>
+            <span class="cart-btn-label" data-i18n="nav.cart">السلة</span>
+          </a>
         </div>
       </div>
     </div>
@@ -73,11 +96,7 @@
               <strong id="cartTotal">0</strong>
             </div>
             <label class="input-label" data-i18n="cart.discount_code">كود الخصم</label>
-            <div class="coupon-row">
-              <input id="discountCode" type="text" placeholder="اكتب الكود هنا" data-i18n-placeholder="cart.discount_code_placeholder" />
-              <button type="button" id="applyCouponBtn" class="btn ghost">تطبيق</button>
-            </div>
-            <div id="couponMsg" class="note"></div>
+            <input id="discountCode" type="text" placeholder="اكتب الكود هنا" data-i18n-placeholder="cart.discount_code_placeholder" />
             <label class="input-label" data-i18n="cart.recipient_name">اسم المستلم</label>
             <input id="customerName" type="text" placeholder="الاسم بالكامل" data-i18n-placeholder="cart.recipient_name_placeholder" autocomplete="name" />
 
@@ -145,12 +164,6 @@
       </div>
     </div>
   </footer>
-
-  <nav class="mobile-tabs" aria-label="Mobile Navigation">
-    <a class="mobile-tab" href="index.html"><span>⌂</span><small data-i18n="nav.home">الرئيسية</small></a>
-    <a class="mobile-tab" href="track.html"><span>◎</span><small data-i18n="nav.track">تتبع</small></a>
-    <a class="mobile-tab" href="auth.html"><span>◉</span><small data-i18n="nav.account">حسابي</small></a>
-  </nav>
 
   <script src="js/i18n.js"></script>
   <script src="js/app.js"></script>

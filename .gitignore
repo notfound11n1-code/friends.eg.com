@@ -34,3 +34,4 @@ temp/
 
 # Uploads (optional - if storing images locally)
 # images/uploads/*
+.vercel

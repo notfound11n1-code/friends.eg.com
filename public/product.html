@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title data-i18n="title.category">FRIENDS | صفحة القسم</title>
+  <title data-i18n="title.product">FRIENDS | تفاصيل المنتج</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Harmattan:wght@400;600;700&family=Reem+Kufi:wght@400;500;600;700&family=Changa:wght@400;600;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body data-page="category">
+<body data-page="product">
   <!-- Announcement -->
   <div class="announcement">
     <div class="container announcement-inner">
@@ -44,22 +44,12 @@
       <nav class="main-nav">
         <a class="nav-link" href="index.html"><span class="nav-icon">⌂</span><span data-i18n="nav.home">الرئيسية</span></a>
         <a class="nav-link" href="index.html#offers"><span class="nav-icon-badge">%</span><span data-i18n="nav.offers">العروض</span></a>
-        <a class="nav-link active" href="index.html#categories"><span class="nav-icon">▦</span><span data-i18n="nav.categories">الأقسام</span></a>
+        <a class="nav-link" href="index.html#categories"><span class="nav-icon">▦</span><span data-i18n="nav.categories">الأقسام</span></a>
         <a class="nav-link" href="index.html#products"><span class="nav-icon">◫</span><span data-i18n="nav.products">المنتجات</span></a>
         <a class="nav-link" href="track.html"><span class="nav-icon">◎</span><span data-i18n="nav.track">تتبع الطلب</span></a>
       </nav>
 
       <div class="header-actions">
-        <div class="search-box">
-          <div class="search-shell">
-            <span class="search-icon">⌕</span>
-            <input id="searchInput" type="text" list="searchSuggestions" placeholder="ابحث عن منتج أو كود أو وصف..." data-i18n-placeholder="search.placeholder.global" autocomplete="off" />
-            <datalist id="searchSuggestions"></datalist>
-            <button class="search-clear" id="searchClear" type="button" aria-label="مسح البحث" data-i18n-aria="search.clear">✕</button>
-          </div>
-          <p class="search-meta" id="searchMeta" data-i18n="search.hint.global">ابحث بسرعة عن أي منتج في المتجر.</p>
-        </div>
-
         <div class="header-user-actions">
           <div class="auth-links" id="authLinks">
             <a class="btn ghost" href="auth.html" data-i18n="nav.login">تسجيل دخول</a>
@@ -78,49 +68,23 @@
   </header>
 
   <main>
-    <!-- Category Header -->
-    <section class="section alt">
-      <div class="container">
-        <div class="section-header">
-          <h2 id="categoryTitle" data-i18n="section.category.title">القسم</h2>
-          <p data-i18n="section.category.subtitle">يعرض المنتجات الخاصة بهذا القسم فقط.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Category Products -->
+    <!-- Product Details -->
     <section class="section">
       <div class="container">
-        <div class="category-layout">
-          <aside class="filters" aria-labelledby="filtersHeading">
-            <h4 id="filtersHeading" data-i18n="filters.title">عناصر التصفية</h4>
-            <div class="filter-group">
-              <label data-i18n="filters.category">الفئة</label>
-              <select class="select-input" id="filterCategory">
-                <option value="">كل الأقسام</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <label data-i18n="filters.price">نطاق السعر</label>
-              <input type="range" min="0" max="1000" value="0" />
-            </div>
-            <div class="filter-group">
-              <label data-i18n="filters.brand">العلامة التجارية</label>
-              <select class="select-input" id="filterBrand">
-                <option value="">كل الماركات</option>
-              </select>
-            </div>
-            <div class="filter-actions">
-              <button class="btn ghost" id="clearFilters" data-i18n="filters.clear">مسح الفلاتر</button>
-              <button class="btn primary" id="applyFilters" data-i18n="filters.apply">تطبيق</button>
-            </div>
-          </aside>
-
-          <main class="products-main">
-            <div class="grid products" id="categoryGrid">
-              <!-- يتم توليد المنتجات تلقائيًا حسب القسم من js/app.js -->
-            </div>
-          </main>
+        <div class="product-details" id="productDetails"></div>
+        <div class="related-grid">
+          <div class="section-header">
+            <h2 data-i18n="section.related.title">منتجات مشابهة</h2>
+            <p data-i18n="section.related.subtitle">اختيارات قريبة تناسب احتياجك.</p>
+          </div>
+          <div class="grid products" id="relatedGrid"></div>
+        </div>
+        <div class="related-grid">
+          <div class="section-header">
+            <h2 data-i18n="section.reviews.title">تقييمات العملاء</h2>
+            <p data-i18n="section.reviews.subtitle">تعليقات حقيقية تمت الموافقة عليها من الإدارة.</p>
+          </div>
+          <div id="productReviews"></div>
         </div>
       </div>
     </section>
@@ -136,17 +100,17 @@
     <div class="container footer-grid">
       <div>
         <div class="badge">FRIENDS</div>
-        <p data-i18n="footer.category_about">منتجات موثوقة باختيارات طبية معتمدة.</p>
+        <p data-i18n="footer.product_about">اختيارات متجددة للعناية اليومية.</p>
       </div>
       <div>
-        <h4 data-i18n="footer.category_links_title">الأقسام</h4>
-        <p><a href="index.html#categories" data-i18n="footer.category_links_all">عرض كل الأقسام</a></p>
-        <p><a href="index.html#products" data-i18n="footer.category_links_products">عرض المنتجات</a></p>
+        <h4 data-i18n="footer.quick_links">روابط سريعة</h4>
+        <p><a href="index.html" data-i18n="nav.home">الرئيسية</a></p>
+        <p><a href="cart.html" data-i18n="nav.cart">السلة</a></p>
       </div>
       <div>
-        <h4 data-i18n="footer.support_title">الدعم</h4>
+        <h4 data-i18n="footer.contact_us">تواصل معنا</h4>
         <p><span data-i18n="label.whatsapp">رقم واتساب</span> | +201061806140</p>
-        <p data-i18n="footer.category_support_return">سياسة الاستبدال خلال 7 أيام.</p>
+        <p><span data-i18n="label.email">البريد</span>: hello@friends.store</p>
       </div>
     </div>
   </footer>

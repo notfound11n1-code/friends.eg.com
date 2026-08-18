@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FRIENDS | لوحة الإدارة</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Harmattan:wght@400;600;700&family=Reem+Kufi:wght@400;500;600;700&family=Changa:wght@400;600;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="admin">
+  <!-- Announcement -->
+  <div class="announcement">
+    <div class="container announcement-inner">
+      <div class="announcement-brand-slogan">
+        <span class="announcement-pulse-dot"></span>
+        <strong class="slogan-text">لوحة التحكم والإدارة</strong>
+        <span class="announcement-sep">•</span>
+        <span class="announcement-sub">FRIENDS For Medical Supplies</span>
+      </div>
+      <div class="announcement-quick-info">
+        <span class="announcement-tag">🔐 لوحة الإدارة الآمنة</span>
+      </div>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="Friends Medical Supplies">
+        <div class="logo">
+          <img src="images/friends-logo.svg" alt="Friends For Medical Supplies - فريندز للمستلزمات الطبية" />
+        </div>
+      </a>
+
+      <nav class="main-nav">
+        <a class="nav-link" href="index.html"><span class="nav-icon">⌂</span>الرئيسية</a>
+        <a class="nav-link active" href="admin.html"><span class="nav-icon">⚙</span>لوحة التحكم</a>
+        <a class="nav-link" href="track.html"><span class="nav-icon">◎</span>تتبع الطلبات</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="btn ghost" id="adminLogoutBtn" style="display:none;">تسجيل الخروج</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Admin sidebar for quick navigation -->
+    <div id="adminSidebar" style="position:fixed;left:12px;top:140px;z-index:105;display:flex;flex-direction:column;gap:8px;">
+      <button class="btn ghost admin-nav-btn" data-target="dashboardSection">الرئيسية</button>
+      <button class="btn ghost admin-nav-btn" data-target="ordersSection">الطلبات</button>
+      <button class="btn ghost admin-nav-btn" data-target="financeSection">المالية</button>
+      <button class="btn ghost admin-nav-btn" data-target="supportSection">الدعم</button>
+      <button class="btn ghost admin-nav-btn" data-target="supportQuestionsSection">أسئلة</button>
+      <button class="btn ghost admin-nav-btn" data-target="returnsSection">الإرجاع</button>
+      <button class="btn ghost admin-nav-btn" data-target="promotionsSection">العروض</button>
+      <button class="btn ghost admin-nav-btn" data-target="couponsSection">الكوبونات</button>
+      <button class="btn ghost admin-nav-btn" data-target="exportProductsSection">تصدير منتجات</button>
+      <button class="btn ghost admin-nav-btn" data-target="kpiSection">مؤشرات</button>
+      <button class="btn ghost admin-nav-btn" data-target="prescriptionsSection">وصفات</button>
+      <button class="btn ghost admin-nav-btn" data-target="usersSection">المستخدمون</button>
+      <button class="btn ghost admin-nav-btn" data-target="staffSection">الموظفون</button>
+    </div>
+    <section class="section" id="loginSection">
+      <div class="container">
+        <div class="section-header">
+          <h2>تسجيل دخول الإدارة</h2>
+          <p>ادخل بيانات المسؤول للوصول إلى لوحة التحكم.</p>
+        </div>
+        <div class="card auth-card">
+          <label class="input-label">البريد الإلكتروني</label>
+          <input id="adminEmail" type="email" placeholder="admin@friends.com" />
+          <label class="input-label">كلمة المرور</label>
+          <input id="adminPassword" type="password" placeholder="********" />
+          <button class="btn primary" id="adminLoginBtn">تسجيل الدخول</button>
+          <p class="note" id="loginMsg"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="dashboardSection" style="display:none;">
+      <div class="container">
+        <div class="section-header">
+          <h2>لوحة التحكم</h2>
+          <p>تحديث المنتجات والعروض من مكان واحد.</p>
+        </div>
+
+        <div class="admin-layout">
+          <div class="card">
+            <h4 id="productFormTitle">إضافة منتج جديد</h4>
+            <input id="pId" type="hidden" />
+
+            <label class="input-label">اسم المنتج</label>
+            <input id="pName" type="text" />
+
+            <label class="input-label">السعر</label>
+            <input id="pPrice" type="number" min="0" step="0.01" />
+
+            <label class="input-label">القسم</label>
+            <input id="pCategory" type="text" />
+
+            <label class="input-label">وصف مختصر</label>
+            <input id="pShort" type="text" />
+
+            <label class="input-label">تفاصيل المنتج</label>
+            <input id="pDetails" type="text" />
+
+            <label class="input-label">الاستخدامات</label>
+            <input id="pUsage" type="text" />
+
+            <label class="input-label">الخصم</label>
+            <input id="pDiscount" type="text" placeholder="مثال: 10%" />
+
+            <label class="input-label">المخزون</label>
+            <input id="pStock" type="number" min="0" />
+
+            <label class="input-label">الماركة</label>
+            <input id="pBrand" type="text" />
+
+            <label class="input-label">SKU</label>
+            <input id="pSku" type="text" />
+
+            <label class="input-label">صور المنتج (يمكن اختيار أكثر من صورة)</label>
+            <input id="pImageFile" type="file" accept="image/*" multiple />
+            <div id="pImagePreview" class="admin-preview-list"></div>
+
+            <div class="admin-divider"></div>
+            <div class="admin-subheader">
+              <h5>محتوى المنتج بالإنجليزية (EN)</h5>
+              <button class="btn ghost" id="toggleEnFields" type="button">إظهار/إخفاء</button>
+            </div>
+            <div id="productEnFields" style="display:none;">
+              <label class="input-label">Product Name (EN)</label>
+              <input id="pNameEn" type="text" placeholder="English name" />
+
+              <label class="input-label">Category (EN)</label>
+              <input id="pCategoryEn" type="text" placeholder="English category" />
+
+              <label class="input-label">Short Description (EN)</label>
+              <input id="pShortEn" type="text" placeholder="Short description" />
+
+              <label class="input-label">Details (EN)</label>
+              <input id="pDetailsEn" type="text" placeholder="Product details" />
+
+              <label class="input-label">Usage (EN)</label>
+              <input id="pUsageEn" type="text" placeholder="Product usage" />
+
+              <label class="input-label">Brand (EN)</label>
+              <input id="pBrandEn" type="text" placeholder="Brand name" />
+            </div>
+
+            <div class="admin-actions">
+              <button class="btn primary" id="saveProductBtn">حفظ المنتج</button>
+              <button class="btn ghost" id="resetProductBtn" type="button">مسح الحقول</button>
+            </div>
+            <p class="note" id="productMsg"></p>
+          </div>
+
+          <div class="card">
+            <h4>كل المنتجات</h4>
+            <div id="productsList" class="admin-table"></div>
+          </div>
+
+          <div class="card">
+            <h4 id="heroFormTitle">إضافة سلايدر جديد</h4>
+            <input id="heroId" type="hidden" />
+
+            <label class="input-label">عنوان السلايدر</label>
+            <input id="heroTitle" type="text" />
+
+            <label class="input-label">الوصف</label>
+            <input id="heroText" type="text" />
+
+            <label class="input-label">شارة الخصم</label>
+            <input id="heroBadge" type="text" placeholder="خصم 20%" />
+
+            <label class="input-label">صورة السلايدر</label>
+            <input id="heroImageFile" type="file" accept="image/*" />
+            <img id="heroImagePreview" class="admin-preview is-empty" alt="معاينة السلايدر" />
+
+            <div class="admin-actions">
+              <button class="btn primary" id="saveHeroBtn">حفظ السلايدر</button>
+              <button class="btn ghost" id="resetHeroBtn" type="button">مسح الحقول</button>
+            </div>
+            <p class="note" id="heroMsg"></p>
+          </div>
+
+          <div class="card">
+            <h4>كل شرائح السلايدر</h4>
+            <div id="heroList" class="admin-table"></div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ordersSection" style="display:none;">
+      <div class="container">
+        <div class="section-header">
+          <h2>إدارة طلبات العملاء</h2>
+          <p>تابع حالة كل طلب وحدثه بسهولة.</p>
+        </div>
+        <div class="card">
+          <h4>قائمة الطلبات</h4>
+          <div class="admin-actions">
+            <select id="filterStatus" class="select-input">
+              <option value="">كل الحالات</option>
+              <option value="pending">قيد المراجعة</option>
+              <option value="confirmed">تم التأكيد</option>
+              <option value="packed">تم التجهيز</option>
+              <option value="shipped">تم الشحن</option>
+              <option value="delivered">تم التسليم</option>
+              <option value="cancelled">تم الإلغاء</option>
+            </select>
+            <input id="filterDateFrom" type="date" />
+            <input id="filterDateTo" type="date" />
+            <input id="filterOrderQuery" type="text" placeholder="ابحث برقم الطلب أو العميل أو الهاتف" />
+            <button class="btn ghost" id="applyOrderFilters" type="button">تطبيق الفلاتر</button>
+          </div>
+          <div id="ordersList"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="reviewsSection" style="display:none;">
+      <div class="container">
+        <div class="section-header">
+          <h2>مراجعة تقييمات العملاء</h2>
+          <p>راجع التقييمات ووافق عليها من لوحة الإدارة.</p>
+        </div>
+        <div class="card">
+          <h4>قائمة التقييمات</h4>
+          <div id="reviewsList"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="staffSection" style="display:none;">
+      <div class="container">
+        <div class="section-header">
+          <h2>فريق العمل والصلاحيات</h2>
+          <p>تحكم في دور كل موظف (أدمن/شحن/خدمة عملاء).</p>
+        </div>
+        <div class="admin-layout">
+          <div class="card">
+            <h4>الموظفون</h4>
+            <div id="staffList"></div>
+          </div>
+
+          <div class="card">
+            <h4>إنشاء حساب موظف جديد</h4>
+            <label class="input-label">الاسم الكامل</label>
+            <input id="staffName" type="text" placeholder="اسم الموظف" />
+
+            <label class="input-label">البريد الإلكتروني</label>
+            <input id="staffEmail" type="email" placeholder="staff@company.com" />
+
+            <label class="input-label">كلمة المرور</label>
+            <input id="staffPassword" type="password" placeholder="******" />
+
+            <label class="input-label">الصلاحية</label>
+            <select id="staffRole" class="select-input">
+              <option value="supervisor">مشرف</option>
+              <option value="shipping">موظف شحن</option>
+              <option value="support">خدمة عملاء</option>
+            </select>
+
+            <div class="admin-actions">
+              <button class="btn primary" id="createStaffBtn">إنشاء الحساب</button>
+            </div>
+            <p class="note" id="staffCreateMsg"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="usersSection" style="display:none;">
+      <div class="container">
+        <div class="section-header">
+          <h2>إدارة المستخدمين</h2>
+          <p>اعرض العملاء وفلتر حسب الدولة أو مفتاح الرقم أو حرف من الاسم.</p>
+        </div>
+        <div class="card">
+          <h4>قائمة المستخدمين</h4>
+          <div class="admin-actions">
+            <select id="filterUserCountry" class="select-input">
+              <option value="">كل الدول</option>
+              <option value="مصر">مصر</option>
+              <option value="السعودية">السعودية</option>
+              <option value="الإمارات">الإمارات</option>
+              <option value="الكويت">الكويت</option>
+              <option value="قطر">قطر</option>
+              <option value="البحرين">البحرين</option>
+              <option value="عمان">عمان</option>
+              <option value="الأردن">الأردن</option>
+              <option value="لبنان">لبنان</option>
+              <option value="العراق">العراق</option>
+              <option value="ليبيا">ليبيا</option>
+              <option value="تونس">تونس</option>
+              <option value="الجزائر">الجزائر</option>
+              <option value="المغرب">المغرب</option>
+              <option value="السودان">السودان</option>
+              <option value="اليمن">اليمن</option>
+              <option value="سوريا">سوريا</option>
+              <option value="فلسطين">فلسطين</option>
+              <option value="تركيا">تركيا</option>
+              <option value="الهند">الهند</option>
+              <option value="باكستان">باكستان</option>
+              <option value="إندونيسيا">إندونيسيا</option>
+              <option value="ماليزيا">ماليزيا</option>
+              <option value="الولايات المتحدة">الولايات المتحدة</option>
+              <option value="المملكة المتحدة">المملكة المتحدة</option>
+              <option value="ألمانيا">ألمانيا</option>
+              <option value="فرنسا">فرنسا</option>
+              <option value="إسبانيا">إسبانيا</option>
+              <option value="إيطاليا">إيطاليا</option>
+              <option value="الصين">الصين</option>
+              <option value="اليابان">اليابان</option>
+              <option value="كوريا الجنوبية">كوريا الجنوبية</option>
+              <option value="البرازيل">البرازيل</option>
+              <option value="أستراليا">أستراليا</option>
+              <option value="كندا">كندا</option>
+              <option value="أخرى">أخرى</option>
+            </select>
+            <select id="filterUserType" class="select-input">
+              <option value="">كل الحسابات</option>
+              <option value="customers">عملاء فقط</option>
+              <option value="staff">موظفين فقط</option>
+            </select>
+            <input id="filterUserPhoneKey" type="text" placeholder="مفتاح الرقم أو بداية الهاتف" />
+            <input id="filterUserLetter" type="text" placeholder="حرف من الاسم" maxlength="2" />
+            <input id="filterUserQuery" type="text" placeholder="ابحث بالاسم أو البريد أو الهاتف" />
+            <button class="btn ghost" id="applyUserFilters" type="button">تطبيق الفلاتر</button>
+            <button class="btn ghost" id="clearUserFilters" type="button">مسح الفلاتر</button>
+            <button class="btn ghost" id="exportUsersBtn" type="button">تصدير Excel</button>
+          </div>
+          <div id="usersList" class="admin-table"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Support tickets -->
+    <section class="section" id="supportSection" style="display:none;">
+      <!-- existing support tickets -->
+    </section>
+
+    <!-- Support questions (product Q&A) -->
+    <section class="section" id="supportQuestionsSection" style="display:none;">
+      <div class="container">
+        <div class="section-header"><h2>أسئلة الدعم العامة</h2><p>أسئلة الزوار عن المنتجات والرد عليها.</p></div>
+        <div class="card">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+            <button class="btn ghost" id="supportQuestionsRefresh">تحديث</button>
+          </div>
+          <div id="supportQuestionsList" class="admin-table"></div>
+        </div>
+      </div>
+    </section>      <div class="container">
+        <div class="section-header"><h2>تذاكر الدعم</h2><p>قائمة تذاكر الدعم والرد عليها.</p></div>
+        <div class="card">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+            <button class="btn ghost" id="supportRefresh">تحديث</button>
+          </div>
+          <div id="supportList" class="admin-table"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Returns -->
+    <section class="section" id="returnsSection" style="display:none;">
+      <div class="container">
+        <div class="section-header"><h2>طلبات الإرجاع</h2><p>عرض طلبات الإرجاع التي قدمها العملاء.</p></div>
+        <div class="card">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+            <button class="btn ghost" id="returnsRefresh">تحديث</button>
+          </div>
+          <div id="returnsList" class="admin-table"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Coupons -->
+    <section class="section" id="couponsSection" style="display:none;">
+      <div class="container">
+        <div class="section-header"><h2>الكوبونات</h2><p>إنشاء وعرض كوبونات الخصم.</p></div>
+        <div class="card">
+          <label class="input-label">كود الكوبون</label>
+          <input id="couponCode" type="text" />
+          <label class="input-label">القيمة</label>
+          <input id="couponValue" type="number" />
+          <label class="input-label">نوع القيمة</label>
+          <select id="couponType"><option value="amount">مبلغ</option><option value="percent">نسبة%</option></select>
+          <div class="admin-actions"><button class="btn primary" id="createCouponBtn">إنشاء كوبون</button></div>
+          <p class="note" id="couponsMsg"></p>
+        </div>
+        <div class="card"><h4>قائمة الكوبونات</h4><div id="couponsList" class="admin-table"></div></div>
+      </div>
+    </section>
+
+    <!-- Promotions -->
+    <section class="section" id="promotionsSection" style="display:none;">
+      <div class="container">
+        <div class="section-header"><h2>العروض الترويجية</h2><p>إنشاء وتعديل العروض الظاهرة في الموقع.</p></div>
+        <div class="card">
+          <label class="input-label">عنوان العرض</label>
+          <input id="promotionTitle" type="text" />
+          <label class="input-label">النوع</label>
+          <input id="promotionType" type="text" />
+          <label class="input-label">قيمة</label>
+          <input id="promotionValue" type="text" />
+          <div class="admin-actions"><button class="btn primary" id="createPromotionBtn">إضافة عرض</button></div>
+        </div>
+        <div class="card"><h4>قائمة العروض</h4><div id="promotionsList" class="admin-table"></div></div>
+      </div>
+    </section>
+
+    <!-- Export products -->
+    <section class="section" id="exportProductsSection" style="display:none;">
+      <div class="container">
+        <div class="section-header"><h2>تصدير المنتجات</h2><p>تصدير كامل بيانات المنتجات كـ CSV.</p></div>
+        <div class="card">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn primary" id="exportProductsBtn">تصدير CSV للمنتجات</button>
+          </div>
+          <p class="note" id="exportProductsMsg"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- KPI -->
+    <section class="section" id="kpiSection" style="display:none;">
+      <div class="container">
+        <div class="section-header"><h2>مؤشرات الأداء (KPI)</h2><p>لمحة سريعة عن الأداء.</p></div>
+        <div class="card">
+          <label class="input-label">الفترة</label>
+          <select id="kpiPeriod"><option value="daily">يومي</option><option value="weekly" selected>أسبوعي</option><option value="monthly">شهري</option></select>
+          <div style="margin-top:8px;display:flex;gap:10px;align-items:center;"><button class="btn ghost" id="kpiRefresh">تحديث</button></div>
+        </div>
+        <div class="card">
+          <h4>الملخص</h4>
+          <div id="kpiSummary">
+            <div>عدد الطلبات: <strong id="kpiTotalOrders">0</strong></div>
+            <div>العائد: <strong id="kpiRevenue">0</strong></div>
+            <div>متوسط قيمة الطلب (AOV): <strong id="kpiAov">0</strong></div>
+            <div>الأكثر مبيعاً: <div id="kpiTopList"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Prescriptions -->
+    <section class="section" id="prescriptionsSection" style="display:none;">
+      <div class="container">
+        <div class="section-header"><h2>الوصفات الطبية</h2><p>عرض وتحويل الوصفات.</p></div>
+        <div class="card">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn ghost" id="prescriptionsRefresh">تحديث</button>
+          </div>
+          <div id="prescriptionsList" class="admin-table"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="financeSection" style="display:none;">
+      <div class="container">
+        <div class="section-header">
+          <h2>المالية والتقارير</h2>
+          <p>تقارير العائدات والمبيعات مع إمكانية التصدير حسب النطاق الزمني.</p>
+        </div>
+
+        <div class="card">
+          <label class="input-label">من</label>
+          <input id="financeDateFrom" type="date" />
+          <label class="input-label">إلى</label>
+          <input id="financeDateTo" type="date" />
+          <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
+            <button class="btn ghost" id="financeApply">تطبيق</button>
+            <button class="btn ghost" id="financeThisWeek">هذا الأسبوع</button>
+            <button class="btn ghost" id="financeThisMonth">هذا الشهر</button>
+            <button class="btn ghost" id="financeThisYear">هذا العام</button>
+            <button class="btn primary" id="financeExport">تصدير CSV</button>
+          </div>
+          <p class="note" id="financeMsg"></p>
+        </div>
+
+        <div class="card">
+          <h4>ملخص</h4>
+          <div id="financeSummary">
+            <div>إجمالي العائد: <strong id="financeTotalRevenue">0</strong></div>
+            <div>إجمالي الطلبات: <strong id="financeTotalOrders">0</strong></div>
+            <div>إجمالي الكمية: <strong id="financeTotalItems">0</strong></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>تفاصيل المعاملات</h4>
+          <div id="financeTable" class="admin-table"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Load dev-only patches (fetch-auth-patch.js, admin-patch.js) only on localhost or when ?dev=1
+    (function(){
+      try {
+        const devHosts = ['localhost','127.0.0.1'];
+        if (devHosts.includes(location.hostname) || location.search.indexOf('dev=1') >= 0) {
+          var s1 = document.createElement('script'); s1.src = 'js/fetch-auth-patch.js'; document.head.appendChild(s1);
+          var s2 = document.createElement('script'); s2.src = 'js/admin-patch.js'; document.head.appendChild(s2);
+        }
+      } catch (e) { /* ignore */ }
+    })();
+  </script>
+  <script src="js/admin.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
+
+
+

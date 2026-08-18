@@ -9,27 +9,51 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 import dotenv from "dotenv";
+import { WebSocket as ws } from "ws";
+// Polyfill WebSocket for Node.js 20 (Supabase realtime needs it)
+if (typeof globalThis.WebSocket === "undefined") {
+  globalThis.WebSocket = ws;
+}
 import { createClient } from "@supabase/supabase-js";
-import { initializeSupabaseSchema, seedSupabaseData, checkSupabaseConnection } from "./db-init.js";
 
 // Load environment variables
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// On Vercel, included files are relative to cwd; locally they are relative to server.js
+let __dirname = path.dirname(__filename);
+if (process.env.VERCEL) {
+  // Try multiple paths where Vercel might place included files
+  const candidates = [
+    process.cwd(),
+    path.resolve(__dirname, '..'),
+    path.resolve(__dirname),
+    '/var/task',
+    '/var/task/user',
+    path.dirname(__dirname),
+  ];
+  for (const c of candidates) {
+    if (existsSync(path.join(c, 'index.html'))) {
+      __dirname = c;
+      break;
+    }
+  }
+}
 
 const useSupabase = String(process.env.USE_SUPABASE || "false").toLowerCase() === "true";
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 const supabase = supabaseUrl && supabaseKey && useSupabase ? createClient(supabaseUrl, supabaseKey, {
-  auth: { persistSession: false, autoRefreshToken: false }
+  auth: { persistSession: false, autoRefreshToken: false },
+  global: { headers: { 'x-client-info': 'friends-store' } },
+  realtime: { params: { eventsPerSecond: 0 } },
+  db: { schema: 'public' }
 }) : null;
 
 const app = express();
 const PORT = 3000;
 
 const DATA_DIR = path.join(__dirname, "data");
-const SEED_PATH = path.join(DATA_DIR, "seed.json");
 const PRODUCTS_PATH = path.join(DATA_DIR, "products.json");
 const HERO_PATH = path.join(DATA_DIR, "hero.json");
 const ORDERS_PATH = path.join(DATA_DIR, "orders.json");
@@ -127,36 +151,26 @@ const writeJsonSafe = async (filePath, val) => {
 };
 
 const ensureDataFiles = async () => {
-  await mkdir(DATA_DIR, { recursive: true });
   await mkdir(UPLOAD_DIR, { recursive: true });
 
-  try {
-    const raw = await readFile(PRODUCTS_PATH, "utf8");
-    JSON.parse(raw.replace(/^\uFEFF/, "").trim());
-  } catch {
-    const seed = await readJsonSafe(SEED_PATH, { products: [], hero: [] });
-    await writeJsonSafe(PRODUCTS_PATH, seed.products || []);
+  // When Supabase is enabled, skip local JSON file management
+  if (supabase) {
+    console.log("🔄 Using Supabase storage. Skipping local file setup.");
+    return;
   }
 
-  try {
-    const raw = await readFile(HERO_PATH, "utf8");
-    JSON.parse(raw.replace(/^\uFEFF/, "").trim());
-  } catch {
-    const seed = await readJsonSafe(SEED_PATH, { products: [], hero: [] });
-    const hero = (seed.hero || []).map((slide, idx) => ({
-      id: idx + 1,
-      title: slide.title || "",
-      text: slide.text || "",
-      badge: slide.badge || "",
-      image: slide.image || ""
-    }));
-    await writeJsonSafe(HERO_PATH, hero);
+  // Local JSON fallback - create empty files (no mock data)
+  await mkdir(DATA_DIR, { recursive: true });
+
+  try { await readFile(PRODUCTS_PATH, "utf8"); } catch {
+    await writeJsonSafe(PRODUCTS_PATH, []);
   }
 
-  try {
-    const raw = await readFile(ORDERS_PATH, "utf8");
-    JSON.parse(raw.replace(/^\uFEFF/, "").trim());
-  } catch {
+  try { await readFile(HERO_PATH, "utf8"); } catch {
+    await writeJsonSafe(HERO_PATH, []);
+  }
+
+  try { await readFile(ORDERS_PATH, "utf8"); } catch {
     await writeJsonSafe(ORDERS_PATH, []);
   }
 
@@ -211,12 +225,20 @@ const normalizeProduct = (product) => {
 
 const readSupabaseTable = async (table, fallback = []) => {
   if (!supabase) return fallback;
-  const { data, error } = await supabase.from(table).select("*");
-  if (error) {
-    console.warn(`Supabase read failed for ${table}:`, error.message);
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const { data, error } = await supabase.from(table).select("*").abortSignal(controller.signal);
+    clearTimeout(timeout);
+    if (error) {
+      console.warn(`Supabase read failed for ${table}:`, error.message);
+      return fallback;
+    }
+    return data ?? fallback;
+  } catch (e) {
+    console.warn(`Supabase read error for ${table}:`, e.message);
     return fallback;
   }
-  return data ?? fallback;
 };
 
 const writeSupabaseTable = async (table, rows) => {
@@ -283,7 +305,13 @@ const writeOrders = async (orders) => {
 const readUsers = async () => {
   if (supabase) {
     const items = await readSupabaseTable("users", []);
-    return Array.isArray(items) ? items : [];
+    if (!Array.isArray(items)) return [];
+    return items.map(u => ({
+      ...u,
+      passwordHash: u.passwordHash || u.passwordhash || null,
+      fullName: u.fullName || u.fullname || u.full_name || null,
+      createdAt: u.createdAt || u.createdat || u.created_at || null
+    }));
   }
   return readJsonSafe(USERS_PATH, []);
 };
@@ -346,7 +374,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "10mb" }));
-app.use(express.static(__dirname));
+app.use(express.static(__dirname, { extensions: ["html"] }));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
@@ -394,6 +422,25 @@ app.get("/api/health", (req, res) => {
   res.json({ ok: true, time: new Date().toISOString() });
 });
 
+app.get("/api/debug", async (req, res) => {
+  try {
+    const result = {
+      useSupabase: useSupabase,
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseKey,
+      clientCreated: !!supabase,
+      urlPrefix: supabaseUrl ? supabaseUrl.substring(0, 35) : null
+    };
+    if (supabase) {
+      const { data, error } = await supabase.from("users").select("id,email,role").limit(1);
+      result.supabaseQuery = error ? { error: error.message } : { ok: true, count: data?.length };
+    }
+    res.json(result);
+  } catch (e) {
+    res.json({ error: e.message, useSupabase, hasUrl: !!supabaseUrl, clientCreated: !!supabase });
+  }
+});
+
 const requireAuth = (req, res, next) => {
   const header = req.headers.authorization || "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : null;
@@ -428,19 +475,43 @@ const buildAuthPayload = (user) => ({
 });
 
 app.post("/api/auth/login", async (req, res) => {
-  const { email, password } = req.body || {};
-  if (!email || !password) return res.status(400).json({ error: "credentials_required" });
+  try {
+    const { email, password } = req.body || {};
+    if (!email || !password) return res.status(400).json({ error: "credentials_required" });
 
-  const users = await readUsers();
-  const user = users.find(u => u.email && u.email.toLowerCase() === String(email).trim().toLowerCase());
-  if (!user) return res.status(401).json({ error: "invalid_credentials" });
+    console.log("Login attempt for:", email);
+    const users = await readUsers();
+    console.log("Users found:", users.length);
+    const user = users.find(u => u.email && u.email.toLowerCase() === String(email).trim().toLowerCase());
+    if (!user) {
+      console.log("User not found");
+      return res.status(401).json({ error: "invalid_credentials" });
+    }
 
-  const ok = await bcrypt.compare(password, user.passwordHash);
-  if (!ok) return res.status(401).json({ error: "invalid_credentials" });
+    console.log("User found, comparing password...");
+    console.log("passwordHash type:", typeof user.passwordHash, "length:", user.passwordHash?.length);
+    
+    if (!user.passwordHash || typeof user.passwordHash !== 'string') {
+      console.log("No valid passwordHash, checking plaintext");
+      if (user.password === password) {
+        const authPayload = buildAuthPayload(user);
+        const token = jwt.sign(authPayload, JWT_SECRET, { expiresIn: TOKEN_EXPIRES });
+        return res.json({ token, user: authPayload });
+      }
+      return res.status(401).json({ error: "invalid_credentials" });
+    }
 
-  const authPayload = buildAuthPayload(user);
-  const token = jwt.sign(authPayload, JWT_SECRET, { expiresIn: TOKEN_EXPIRES });
-  res.json({ token, user: authPayload });
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    console.log("bcrypt result:", ok);
+    if (!ok) return res.status(401).json({ error: "invalid_credentials" });
+
+    const authPayload = buildAuthPayload(user);
+    const token = jwt.sign(authPayload, JWT_SECRET, { expiresIn: TOKEN_EXPIRES });
+    res.json({ token, user: authPayload });
+  } catch (e) {
+    console.error("Login error:", e.message);
+    res.status(500).json({ error: "login_failed", message: e.message });
+  }
 });
 
 app.post("/api/auth/register", async (req, res) => {
@@ -1773,18 +1844,8 @@ app.get('/api/admin/finance', requireAuth, requirePermission('finance.read'), as
 const start = async () => {
   await ensureDataFiles();
   
-  // Initialize Supabase if enabled
   if (supabase && useSupabase) {
-    console.log("🔄 Checking Supabase connection...");
-    const connected = await checkSupabaseConnection(supabase);
-    
-    if (connected) {
-      // Try to initialize schema (will skip if tables exist)
-      await initializeSupabaseSchema(supabase);
-      
-      // Seed data if tables are empty
-      await seedSupabaseData(supabase);
-    }
+    console.log("✅ Supabase enabled — using cloud database");
   }
   
   app.listen(PORT, "0.0.0.0", () => {

@@ -252,12 +252,35 @@ const getUserFiltersQuery = () => {
   return params.toString() ? `?${params.toString()}` : "";
 };
 
-const loadImageFile = async (file) => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onload = () => resolve(reader.result);
-  reader.onerror = reject;
-  reader.readAsDataURL(file);
-});
+const uploadImageToCatbox = async (file) => {
+  try {
+    const formData = new FormData();
+    formData.append('reqtype', 'fileupload');
+    formData.append('fileToUpload', file);
+    const resp = await fetch('https://catbox.moe/user/api.php', {
+      method: 'POST',
+      body: formData
+    });
+    if (!resp.ok) throw new Error('Upload failed: ' + resp.status);
+    const url = (await resp.text()).trim();
+    if (!url.startsWith('https://')) throw new Error('Invalid response: ' + url);
+    return url;
+  } catch (e) {
+    console.warn('Catbox upload failed:', e.message);
+    // Fallback to base64
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+};
+
+const loadImageFile = async (file) => {
+  // Upload to catbox.moe, return URL
+  return await uploadImageToCatbox(file);
+};
 
 const setPreviewList = (container, images = []) => {
   if (!container) return;
@@ -604,30 +627,43 @@ const exportUsersCsv = async () => {
   downloadCsv(`friends-users-${today}.csv`, [headers, ...rows]);
 };
 
+let _savingProduct = false;
 const saveProduct = async () => {
+  if (_savingProduct) return;
   const payload = collectProductPayload();
   if (!payload.name || !payload.category || payload.price <= 0) {
     productMsg.textContent = "الاسم والسعر والتصنيف مطلوبين.";
     return;
   }
 
-  const id = Number(formFields.id.value || 0);
-  if (id) {
-    await api(`/admin/products/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-  } else {
-    await api("/admin/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+  _savingProduct = true;
+  const btn = document.getElementById("saveProductBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "...جاري الحفظ"; }
+  productMsg.textContent = "";
+  try {
+    const id = Number(formFields.id.value || 0);
+    if (id) {
+      await api(`/admin/products/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    } else {
+      await api("/admin/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    }
+    productMsg.textContent = id ? "تم تحديث المنتج." : "تم إضافة المنتج ✓";
+    resetProductForm();
+    await renderProducts();
+  } catch (err) {
+    productMsg.textContent = "تعذر حفظ المنتج: " + (err.message || "");
+  } finally {
+    _savingProduct = false;
+    if (btn) { btn.disabled = false; btn.textContent = "حفظ المنتج"; }
   }
-  productMsg.textContent = id ? "تم تحديث المنتج." : "تم إضافة المنتج.";
-  resetProductForm();
-  await renderProducts();
 };
 
 const saveHeroSlide = async () => {
@@ -838,9 +874,7 @@ if (createStaffBtn) {
 }
 
 document.getElementById("saveProductBtn")?.addEventListener("click", () => {
-  saveProduct().catch(() => {
-    productMsg.textContent = "تعذر حفظ المنتج.";
-  });
+  saveProduct();
 });
 
 document.getElementById("saveHeroBtn")?.addEventListener("click", () => {
@@ -1809,3 +1843,73 @@ if (prescriptionsRefreshBtn) prescriptionsRefreshBtn.addEventListener('click', (
 
 /* End of admin extras */
 
+
+
+// === Warranty Management ===
+const warrantiesAdminList = document.getElementById('warrantiesAdminList');
+const warrantiesRefreshBtn = document.getElementById('warrantiesRefresh');
+
+async function renderWarrantiesAdmin() {
+  if (!warrantiesAdminList) return;
+  try {
+    const list = await api('/warranties/all');
+    if (!Array.isArray(list) || !list.length) {
+      warrantiesAdminList.innerHTML = '<div class="admin-row">لا توجد طلبات ضمان.</div>';
+      return;
+    }
+    const statusLabels = { pending: 'قيد المراجعة', approved: 'مفعّل', rejected: 'مرفوض' };
+    warrantiesAdminList.innerHTML = list.map(w => `
+      <div class="admin-row" style="display:flex; gap:12px; align-items:start; flex-wrap:wrap;">
+        ${w.productImage ? `<img src="${w.productImage}" alt="product" style="width:60px;height:60px;object-fit:cover;border-radius:6px;" />` : ''}
+        <div style="flex:1; min-width:200px;">
+          <p><strong>أوردر #${escapeHtml(w.orderId || '')}</strong></p>
+          <p>السيريال: <code>${escapeHtml(w.serialNumber || '')}</code></p>
+          <p>العميل: ${escapeHtml(w.customerName || '')} | ${escapeHtml(w.userEmail || '')}</p>
+          <p>الهاتف: ${escapeHtml(w.customerPhone || '')}</p>
+          <p>العنوان: ${escapeHtml(w.customerAddress || '')}</p>
+          <p>التاريخ: ${new Date(w.createdAt).toLocaleString('ar-EG')}</p>
+          <span class="warranty-status ${w.status}" style="padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;">${statusLabels[w.status] || w.status}</span>
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          ${w.status === 'pending' ? `
+            <button class="btn primary" data-warranty-id="${w.id}" data-warranty-action="approve" style="padding:6px 14px;font-size:13px;">✓ تفعيل</button>
+            <button class="btn ghost" data-warranty-id="${w.id}" data-warranty-action="reject" style="padding:6px 14px;font-size:13px;">✕ رفض</button>
+          ` : ''}
+        </div>
+      </div>
+    `).join('');
+
+    // Attach button handlers
+    warrantiesAdminList.querySelectorAll('button[data-warranty-action]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.warrantyId;
+        const action = btn.dataset.warrantyAction;
+        const status = action === 'approve' ? 'approved' : 'rejected';
+        try {
+          await api('/warranties/' + id + '/status', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+          });
+          await renderWarrantiesAdmin();
+        } catch (e) {
+          alert('خطأ: ' + (e.message || e));
+        }
+      });
+    });
+  } catch (err) {
+    warrantiesAdminList.innerHTML = '<div class="admin-row">خطأ: ' + escapeHtml(String(err.message || err)) + '</div>';
+  }
+}
+
+if (warrantiesRefreshBtn) warrantiesRefreshBtn.addEventListener('click', renderWarrantiesAdmin);
+
+// Show warranties section for supervisor
+warrantiesAdminList && (document.getElementById('warrantiesAdminSection').style.display = hasPermission('staff.manage') ? 'block' : 'none');
+
+// Auto-load when section is shown
+document.addEventListener('click', (e) => {
+  if (e.target.closest && e.target.closest('[data-target="warrantiesAdminSection"]')) {
+    setTimeout(renderWarrantiesAdmin, 100);
+  }
+});

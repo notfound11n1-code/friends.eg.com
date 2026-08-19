@@ -768,14 +768,11 @@ async function applyCouponCode() {
 
 const paymentChannels = {
   "Vodafone Cash": { transferTo: "010xxxxxxxxx", transferAccount: "Vodafone Wallet - FRIENDS" },
-  "Orange Cash": { transferTo: "010xxxxxxxxx", transferAccount: "Orange Wallet - FRIENDS" },
-  "Etisalat Cash": { transferTo: "010xxxxxxxxx", transferAccount: "Etisalat Wallet - FRIENDS" },
-  "WE Pay": { transferTo: "010xxxxxxxxx", transferAccount: "WE Pay Wallet - FRIENDS" },
   InstaPay: { transferTo: "xxxxxxxxxxx@instapay", transferAccount: "Ahly Bank - FRIENDS Store" }
 };
 
 let transferProofFile = null;
-const ADMIN_WHATSAPP = "=201094708407";
+const ADMIN_WHATSAPP = "201061806140";
 
 function getDiscountRate() {
   if (activeCoupon && activeCoupon.type === 'percent') return Number(activeCoupon.value || 0) / 100;

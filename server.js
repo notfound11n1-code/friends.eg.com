@@ -738,6 +738,12 @@ app.get("/product", async (req, res) => {
           (breadcrumbSchema ? '<script type="application/ld+json">' + JSON.stringify(breadcrumbSchema) + '</script>' : '')
         ].filter(Boolean).join('\n  ');
 
+        // Remove old static meta tags to avoid duplicates
+        html = html.replace(/<meta name="description"[^>]*>\n?/g, '');
+        html = html.replace(/<meta name="robots"[^>]*>\n?/g, '');
+        html = html.replace(/<link rel="canonical"[^>]*>\n?/g, '');
+        html = html.replace(/<meta property="og:[^\s]*"[^>]*>\n?/g, '');
+        html = html.replace(/<meta name="twitter:[^\s]*"[^>]*>\n?/g, '');
         html = html.replace(/<title[^>]*>[^<]*<\/title>/, '<title>' + seoTitle + '</title>');
         html = html.replace(/<meta name="viewport"[^>]*>/, m => m + '\n  ' + metaTags);
       }
@@ -808,12 +814,12 @@ app.get("/category", async (req, res) => {
         '<script type="application/ld+json">' + JSON.stringify(itemListSchema) + '</script>'
       ].join('\n  ');
 
-      // Remove old static meta tags (description, robots, canonical, og, twitter)
+      // Remove old static meta tags to avoid duplicates
       html = html.replace(/<meta name="description"[^>]*>\n?/g, '');
       html = html.replace(/<meta name="robots"[^>]*>\n?/g, '');
       html = html.replace(/<link rel="canonical"[^>]*>\n?/g, '');
-      html = html.replace(/<meta property="og:[^"]*"[^>]*>\n?/g, '');
-      html = html.replace(/<meta name="twitter:[^"]*"[^>]*>\n?/g, '');
+      html = html.replace(/<meta property="og:[^\s]*"[^>]*>\n?/g, '');
+      html = html.replace(/<meta name="twitter:[^\s]*"[^>]*>\n?/g, '');
       html = html.replace(/<title[^>]*>[^<]*<\/title>/, '<title>' + seoTitle + '</title>');
       html = html.replace(/<meta name="viewport"[^>]*>/, m => m + '\n  ' + metaTags);
     }

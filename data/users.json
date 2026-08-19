@@ -1,0 +1,23 @@
+[
+  {
+    "id": "83c8acc6-ac93-4b5f-8b11-7dc08596d288",
+    "name": "Supervisor",
+    "email": "admin@friends.com",
+    "passwordHash": "$2a$10$m96eCEWQDyV8PnfizptJkuRfSnkd5/s4cc57hppkrLnuX8vWM/wgS",
+    "role": "supervisor"
+  },
+  {
+    "id": "c0310a68-2b9c-4a57-bdc7-004057bc7812",
+    "name": "Shipping",
+    "email": "shipping@friends.com",
+    "passwordHash": "$2a$10$f2rqc4L5goWhvW1f8eIXSuyqu56pdywrTbb6B.qiA5e48yE7DtGLW",
+    "role": "shipping"
+  },
+  {
+    "id": "67991468-b7f2-414d-8bcf-ddd746899af9",
+    "name": "Support",
+    "email": "support@friends.local",
+    "passwordHash": "$2a$10$Ikn5/ia9Hfwvrs6FIR04keMEOCnEjD40cLTdi415CxPKwPVRjuHMO",
+    "role": "support"
+  }
+]

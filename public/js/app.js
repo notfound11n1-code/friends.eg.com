@@ -228,7 +228,7 @@ function renderProducts(list, container) {
     card.className = "card";
     card.dataset.id = product.id;
     card.innerHTML = `
-      <img src="${image}" alt="${name}" />
+      <img src="${image}" alt="${name} - FRIENDS Store" loading="lazy" />
       <h4>${name}</h4>
       <p>${short}</p>
       <div class="price">${formatPrice(product.price)}</div>
@@ -325,15 +325,21 @@ function renderProductDetails() {
   const category = getProductField(product, "category");
   const images = getProductImages(product);
   const mainImage = images[0] || "";
-  const thumbs = images.map(src => `<button class="thumb" type="button" data-src="${src}"><img src="${src}" alt="${name}" /></button>`).join("");
+  const thumbs = images.map(src => `<button class="thumb" type="button" data-src="${src}"><img src="${src}" alt="${name} - صورة إضافية" loading="lazy" /></button>`).join("");
+
+  // Update breadcrumb
+  const bcCat = document.getElementById("breadcrumbCategory");
+  const bcProd = document.getElementById("breadcrumbProduct");
+  if (bcCat) bcCat.innerHTML = `<a href="category.html?category=${encodeURIComponent(category)}">${category}</a>`;
+  if (bcProd) bcProd.textContent = name;
 
   container.innerHTML = `
     <div class="product-gallery">
-      <img class="product-main" id="productMainImage" src="${mainImage}" alt="${name}" />
+      <img class="product-main" id="productMainImage" src="${mainImage}" alt="${name} - مستلزمات طبية من FRIENDS Store" />
       ${images.length > 1 ? `<div class="product-thumbs">${thumbs}</div>` : ""}
     </div>
     <div>
-      <h3>${name}</h3>
+      <h1>${name}</h1>
       <p>${details}</p>
       <div class="meta-row">
         <div class="rating">${renderStars(product.rating)} <span>(${product.reviews})</span></div>
@@ -456,6 +462,135 @@ function renderRelatedProducts(currentProduct) {
   renderProducts(related.length ? related : products.filter(item => item.id !== currentProduct.id).slice(0, 4), relatedGrid);
 }
 
+
+
+// === Client-side SEO dynamic meta update ===
+function updateProductSEO(product) {
+  if (!product) return;
+  const name = getProductField(product, "name");
+  const desc = getProductField(product, "short") || getProductField(product, "description") || name;
+  const image = getProductField(product, "image") || (product.images && product.images[0]) || "";
+  const price = product.price || 0;
+  const brand = getProductField(product, "brand") || "FRIENDS";
+  const sku = product.sku || "";
+  const category = getProductField(product, "category") || "";
+  const availability = (product.stock && product.stock > 0) ? "InStock" : "OutOfStock";
+  const canonical = `https://friendss.org/product?id=${product.id}`;
+  const seoTitle = `${name} | FRIENDS Store - مستلزمات طبية`;
+
+  document.title = seoTitle;
+  setMeta("description", `${desc.substring(0, 160)}`);
+  setMeta("robots", "index, follow, max-image-preview:large");
+  setLink("canonical", canonical);
+  setOG("title", seoTitle);
+  setOG("description", desc.substring(0, 160));
+  setOG("url", canonical);
+  setOG("type", "product");
+  if (image) setOG("image", image);
+  setTwitter("title", seoTitle);
+  setTwitter("description", desc.substring(0, 160));
+
+  // Product Schema
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": name,
+    "description": desc,
+  };
+  if (image) productSchema.image = image;
+  if (sku) productSchema.sku = sku;
+  if (brand) productSchema.brand = { "@type": "Brand", "name": brand };
+  productSchema.offers = {
+    "@type": "Offer",
+    "price": String(price),
+    "priceCurrency": "EGP",
+    "availability": `https://schema.org/${availability}`
+  };
+  injectJSONLD("product-schema", productSchema);
+
+  // Breadcrumb Schema
+  if (category) {
+    const breadcrumbSchema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "الرئيسية", "item": "https://friendss.org/" },
+        { "@type": "ListItem", "position": 2, "name": category, "item": `https://friendss.org/category?category=${encodeURIComponent(category)}` },
+        { "@type": "ListItem", "position": 3, "name": name, "item": canonical }
+      ]
+    };
+    injectJSONLD("breadcrumb-schema", breadcrumbSchema);
+  }
+}
+
+function updateCategorySEO(categoryName, catProducts) {
+  if (!categoryName) return;
+  const count = catProducts.length;
+  const seoTitle = `${categoryName} | FRIENDS Store - مستلزمات طبية`;
+  const desc = `تسوق ${categoryName} من FRIENDS Store. منتجات طبية أصلية بأسعار مناسبة مع توصيل سريع. ${count} منتج متاح.`;
+  const canonical = `https://friendss.org/category?category=${encodeURIComponent(categoryName)}`;
+
+  document.title = seoTitle;
+  setMeta("description", desc);
+  setMeta("robots", "index, follow, max-image-preview:large");
+  setLink("canonical", canonical);
+  setOG("title", seoTitle);
+  setOG("description", desc);
+  setOG("url", canonical);
+  setOG("type", "website");
+  setTwitter("title", seoTitle);
+  setTwitter("description", desc);
+
+  // Breadcrumb Schema
+  injectJSONLD("breadcrumb-schema", {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "الرئيسية", "item": "https://friendss.org/" },
+      { "@type": "ListItem", "position": 2, "name": categoryName, "item": canonical }
+    ]
+  });
+
+  // ItemList Schema
+  injectJSONLD("itemlist-schema", {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": categoryName,
+    "itemListElement": catProducts.map((p, i) => ({
+      "@type": "ListItem", "position": i + 1, "name": getProductField(p, "name"),
+      "url": `https://friendss.org/product?id=${p.id}`
+    }))
+  });
+}
+
+function setMeta(name, content) {
+  let el = document.querySelector(`meta[name="${name}"]`);
+  if (!el) { el = document.createElement("meta"); el.setAttribute("name", name); document.head.appendChild(el); }
+  el.setAttribute("content", content);
+}
+function setLink(rel, href) {
+  let el = document.querySelector(`link[rel="${rel}"]`);
+  if (!el) { el = document.createElement("link"); el.setAttribute("rel", rel); document.head.appendChild(el); }
+  el.setAttribute("href", href);
+}
+function setOG(prop, content) {
+  let el = document.querySelector(`meta[property="og:${prop}"]`);
+  if (!el) { el = document.createElement("meta"); el.setAttribute("property", `og:${prop}`); document.head.appendChild(el); }
+  el.setAttribute("content", content);
+}
+function setTwitter(prop, content) {
+  let el = document.querySelector(`meta[name="twitter:${prop}"]`);
+  if (!el) { el = document.createElement("meta"); el.setAttribute("name", `twitter:${prop}`); document.head.appendChild(el); }
+  el.setAttribute("content", content);
+}
+function injectJSONLD(id, data) {
+  let el = document.getElementById(id);
+  if (!el) { el = document.createElement("script"); el.type = "application/ld+json"; el.id = id; document.head.appendChild(el); }
+  el.textContent = JSON.stringify(data);
+}
+
+// === SEO Client Functions ===
+
 async function renderProductReviews(productId) {
   const container = document.getElementById("productReviews");
   if (!container) return;
@@ -494,6 +629,8 @@ function renderCategoryPage() {
   const categoryName = getQueryParam("category") || categories[0]?.name;
   currentCategory = categoryName || "";
   if (title) title.textContent = categoryName;
+  const bcCat = document.getElementById("breadcrumbCategory");
+  if (bcCat) bcCat.textContent = categoryName;
 
   if (!categoryName) {
     grid.innerHTML = `<p class='note'>${t("categories.none", "لا توجد أقسام متاحة حالياً.")}</p>`;
@@ -530,7 +667,7 @@ function renderCart() {
     const row = document.createElement("div");
     row.className = "cart-item";
     row.innerHTML = `
-      <img src="${displayImage}" alt="${displayName}" />
+      <img src="${displayImage}" alt="${displayName} - FRIENDS Store" loading="lazy" />
       <div>
         <h4>${displayName}</h4>
         <p>${formatPrice(item.price)} ${t("label.per_piece", "للقطعة")}</p>
@@ -994,7 +1131,7 @@ function initHeroSlider() {
           <p>${slide.text}</p>
           <button class="btn primary">${t("action.order_now", "اطلب الآن")}</button>
         </div>
-        <img src="${slide.image}" alt="${slide.title}" />
+        <img src="${slide.image}" alt="${slide.title} - FRIENDS Store" />
       </div>
     `;
     slidesContainer.appendChild(el);
@@ -1036,6 +1173,7 @@ async function init() {
 
   if (page === "category") {
     renderCategoryPage();
+    updateCategorySEO(currentCategory, products.filter(p => getProductField(p, "category") === currentCategory || p.category === currentCategory));
     setupSearch(document.getElementById("categoryGrid"), () => products.filter(product => {
       const localized = getProductField(product, "category");
       return localized === currentCategory || product.category === currentCategory;
@@ -1044,6 +1182,9 @@ async function init() {
 
   if (page === "product") {
     renderProductDetails();
+    const _pid = Number(getQueryParam("id"));
+    const _product = products.find(p => p.id === _pid);
+    if (_product) updateProductSEO(_product);
   }
 
   if (page === "cart") {

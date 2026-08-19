@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /auth
+Disallow: /auth/
+Disallow: /login
+Disallow: /register
+Disallow: /cart
+Disallow: /cart/
+Disallow: /checkout
+Disallow: /account
+Disallow: /review
+Disallow: /api/
+Allow: /css/
+Allow: /js/
+Allow: /images/
+
+Sitemap: https://friendss.org/sitemap.xml

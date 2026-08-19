@@ -32,6 +32,22 @@
       "dest": "/api/index.js"
     },
     {
+      "src": "/sitemap.xml",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/robots.txt",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/product",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/category",
+      "dest": "/api/index.js"
+    },
+    {
       "handle": "filesystem"
     },
     {
@@ -45,14 +61,6 @@
     {
       "src": "/cart",
       "dest": "/cart.html"
-    },
-    {
-      "src": "/category",
-      "dest": "/category.html"
-    },
-    {
-      "src": "/product",
-      "dest": "/product.html"
     },
     {
       "src": "/review",
@@ -72,7 +80,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/api/index.js"
     }
   ]
 }

@@ -549,8 +549,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "10mb" }));
-app.use(express.static(__dirname, { extensions: ["html"] }));
-
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
@@ -578,8 +576,6 @@ const pageRoutes = [
   ["/admin", "/admin.html"],
   ["/track", "/track.html"],
   ["/cart", "/cart.html"],
-  ["/category", "/category.html"],
-  ["/product", "/product.html"],
   ["/terms", "/terms.html"],
   ["/review", "/review.html"]
 ];
@@ -591,6 +587,253 @@ pageRoutes.forEach(([route, target]) => {
     }
     res.sendFile(path.join(__dirname, target.replace(/^\//, "")));
   });
+});
+
+// ============================================================
+// SEO: Sitemap, Robots.txt, Dynamic Meta Injection
+// ============================================================
+
+const SITE_URL = "https://friendss.org";
+
+// Robots.txt
+app.get("/robots.txt", (req, res) => {
+  res.type("text/plain");
+  res.send(`User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /auth
+Disallow: /auth/
+Disallow: /login
+Disallow: /register
+Disallow: /cart
+Disallow: /cart/
+Disallow: /checkout
+Disallow: /account
+Disallow: /review
+Disallow: /api/
+Allow: /css/
+Allow: /js/
+Allow: /images/
+
+Sitemap: ${SITE_URL}/sitemap.xml
+`);
+});
+
+// Sitemap.xml — generated dynamically from products & categories
+app.get("/sitemap.xml", async (req, res) => {
+  try {
+    const products = await readProducts();
+    const categories = await buildCategories(products);
+    const now = new Date().toISOString();
+
+    const staticPages = [
+      { url: "/", priority: "1.0", changefreq: "daily" },
+      { url: "/track", priority: "0.6", changefreq: "monthly" },
+      { url: "/warranty", priority: "0.7", changefreq: "monthly" },
+      { url: "/terms", priority: "0.5", changefreq: "yearly" },
+    ];
+
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+    // Static pages
+    for (const page of staticPages) {
+      xml += `  <url>\n    <loc>${SITE_URL}${page.url}</loc>\n    <lastmod>${now}</lastmod>\n    <changefreq>${page.changefreq}</changefreq>\n    <priority>${page.priority}</priority>\n  </url>\n`;
+    }
+
+    // Category pages
+    for (const cat of categories) {
+      const catSlug = encodeURIComponent(cat.name);
+      xml += `  <url>\n    <loc>${SITE_URL}/category?category=${catSlug}</loc>\n    <lastmod>${now}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+    }
+
+    // Product pages
+    for (const product of products) {
+      xml += `  <url>\n    <loc>${SITE_URL}/product?id=${product.id}</loc>\n    <lastmod>${now}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.9</priority>\n  </url>\n`;
+    }
+
+    xml += '</urlset>';
+    res.type("application/xml");
+    res.send(xml);
+  } catch (e) {
+    console.error("sitemap error:", e.message);
+    res.status(500).type("text/plain").send("Error generating sitemap");
+  }
+});
+
+// SEO meta injection for product pages
+app.get("/product", async (req, res) => {
+  const productId = req.query.id;
+  const filePath = path.join(__dirname, "product.html");
+  
+  try {
+    let html = await readFile(filePath, "utf8");
+    
+    if (productId) {
+      const products = await readProducts();
+      const product = products.find(p => p.id === Number(productId));
+      
+      if (product) {
+        const name = (product.name || "منتج").replace(/"/g, '&quot;');
+        const description = (product.short || product.description || "منتجات طبية من FRIENDS Store").substring(0, 160);
+        const descEsc = description.replace(/"/g, '&quot;');
+        const image = product.image || (product.images && product.images[0]) || "";
+        const price = product.price || 0;
+        const brand = (product.brand || "FRIENDS").replace(/"/g, '&quot;');
+        const sku = (product.sku || "").replace(/"/g, '&quot;');
+        const category = (product.category || "").replace(/"/g, '&quot;');
+        const availability = (product.stock && product.stock > 0) ? "InStock" : "OutOfStock";
+        const seoTitle = name + " | FRIENDS Store - مستلزمات طبية";
+        const canonicalUrl = SITE_URL + "/product?id=" + product.id;
+
+        // Build Product JSON-LD safely
+        const productSchema = {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": name,
+          "description": description
+        };
+        if (image) productSchema.image = image;
+        if (sku) productSchema.sku = sku;
+        if (brand) productSchema.brand = { "@type": "Brand", "name": brand };
+        productSchema.offers = {
+          "@type": "Offer",
+          "price": String(price),
+          "priceCurrency": "EGP",
+          "availability": "https://schema.org/" + availability
+        };
+
+        // Build Breadcrumb JSON-LD
+        let breadcrumbSchema = null;
+        if (category) {
+          breadcrumbSchema = {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "الرئيسية", "item": SITE_URL + "/" },
+              { "@type": "ListItem", "position": 2, "name": category, "item": SITE_URL + "/category?category=" + encodeURIComponent(category) },
+              { "@type": "ListItem", "position": 3, "name": name, "item": canonicalUrl }
+            ]
+          };
+        }
+
+        const metaTags = [
+          '<title>' + seoTitle + '</title>',
+          '<meta name="description" content="' + descEsc + '" />',
+          '<meta name="robots" content="index, follow, max-image-preview:large" />',
+          '<link rel="canonical" href="' + canonicalUrl + '" />',
+          '<meta property="og:type" content="product" />',
+          '<meta property="og:title" content="' + seoTitle + '" />',
+          '<meta property="og:description" content="' + descEsc + '" />',
+          '<meta property="og:url" content="' + canonicalUrl + '" />',
+          (image ? '<meta property="og:image" content="' + image + '" />' : ''),
+          '<meta property="og:site_name" content="FRIENDS Store" />',
+          '<meta property="og:locale" content="ar_EG" />',
+          '<meta name="twitter:card" content="summary_large_image" />',
+          '<meta name="twitter:title" content="' + seoTitle + '" />',
+          '<meta name="twitter:description" content="' + descEsc + '" />',
+          (image ? '<meta name="twitter:image" content="' + image + '" />' : ''),
+          '<script type="application/ld+json">' + JSON.stringify(productSchema) + '</script>',
+          (breadcrumbSchema ? '<script type="application/ld+json">' + JSON.stringify(breadcrumbSchema) + '</script>' : '')
+        ].filter(Boolean).join('\n  ');
+
+        html = html.replace(/<title[^>]*>[^<]*<\/title>/, '<title>' + seoTitle + '</title>');
+        html = html.replace(/<meta name="viewport"[^>]*>/, m => m + '\n  ' + metaTags);
+      }
+    }
+    
+    res.type("text/html").send(html);
+  } catch (e) {
+    console.error("product SEO error:", e.message);
+    res.sendFile(filePath);
+  }
+});
+
+// SEO meta injection for category pages
+app.get("/category", async (req, res) => {
+  const categoryName = req.query.category;
+  const filePath = path.join(__dirname, "category.html");
+  
+  try {
+    let html = await readFile(filePath, "utf8");
+    
+    if (categoryName) {
+      const products = await readProducts();
+      const catProducts = products.filter(p => p.category === categoryName);
+      const count = catProducts.length;
+      const seoTitle = categoryName + " | FRIENDS Store - مستلزمات طبية";
+      const metaDesc = ("تسوق " + categoryName + " من FRIENDS Store. منتجات طبية أصلية بأسعار مناسبة مع توصيل سريع. " + count + " منتج متاح.").substring(0, 160);
+      const canonicalUrl = SITE_URL + "/category?category=" + encodeURIComponent(categoryName);
+
+      // Breadcrumb Schema
+      const breadcrumbSchema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "الرئيسية", "item": SITE_URL + "/" },
+          { "@type": "ListItem", "position": 2, "name": categoryName, "item": canonicalUrl }
+        ]
+      };
+
+      // ItemList Schema
+      const itemListSchema = {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": categoryName,
+        "itemListElement": catProducts.map((p, i) => ({
+          "@type": "ListItem",
+          "position": i + 1,
+          "name": p.name || "منتج",
+          "url": SITE_URL + "/product?id=" + p.id
+        }))
+      };
+
+      const metaTags = [
+        '<title>' + seoTitle + '</title>',
+        '<meta name="description" content="' + metaDesc + '" />',
+        '<meta name="robots" content="index, follow, max-image-preview:large" />',
+        '<link rel="canonical" href="' + canonicalUrl + '" />',
+        '<meta property="og:type" content="website" />',
+        '<meta property="og:title" content="' + seoTitle + '" />',
+        '<meta property="og:description" content="' + metaDesc + '" />',
+        '<meta property="og:url" content="' + canonicalUrl + '" />',
+        '<meta property="og:site_name" content="FRIENDS Store" />',
+        '<meta property="og:locale" content="ar_EG" />',
+        '<meta property="og:image" content="' + SITE_URL + '/images/friends-logo.svg" />',
+        '<meta name="twitter:card" content="summary" />',
+        '<meta name="twitter:title" content="' + seoTitle + '" />',
+        '<meta name="twitter:description" content="' + metaDesc + '" />',
+        '<script type="application/ld+json">' + JSON.stringify(breadcrumbSchema) + '</script>',
+        '<script type="application/ld+json">' + JSON.stringify(itemListSchema) + '</script>'
+      ].join('\n  ');
+
+      html = html.replace(/<title[^>]*>[^<]*<\/title>/, '<title>' + seoTitle + '</title>');
+      html = html.replace(/<meta name="viewport"[^>]*>/, m => m + '\n  ' + metaTags);
+    }
+    
+    res.type("text/html").send(html);
+  } catch (e) {
+    console.error("category SEO error:", e.message);
+    res.sendFile(filePath);
+  }
+});
+
+// Serve static files (CSS, JS, images) — AFTER SEO routes
+app.use(express.static(__dirname, { index: false }));
+
+// 404 handler — serve custom 404 page
+app.use((req, res, next) => {
+  // Skip API routes
+  if (req.path.startsWith("/api/")) return next();
+  // Skip static file requests
+  if (/\.(css|js|png|jpg|jpeg|gif|svg|webp|ico|json|woff|woff2|ttf|map|xml|txt)$/i.test(req.path)) return next();
+  
+  const filePath = path.join(__dirname, "404.html");
+  if (existsSync(filePath)) {
+    return res.status(404).sendFile(filePath);
+  }
+  res.status(404).send("Page not found");
 });
 
 

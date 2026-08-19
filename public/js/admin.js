@@ -604,30 +604,43 @@ const exportUsersCsv = async () => {
   downloadCsv(`friends-users-${today}.csv`, [headers, ...rows]);
 };
 
+let _savingProduct = false;
 const saveProduct = async () => {
+  if (_savingProduct) return;
   const payload = collectProductPayload();
   if (!payload.name || !payload.category || payload.price <= 0) {
     productMsg.textContent = "الاسم والسعر والتصنيف مطلوبين.";
     return;
   }
 
-  const id = Number(formFields.id.value || 0);
-  if (id) {
-    await api(`/admin/products/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-  } else {
-    await api("/admin/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+  _savingProduct = true;
+  const btn = document.getElementById("saveProductBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "...جاري الحفظ"; }
+  productMsg.textContent = "";
+  try {
+    const id = Number(formFields.id.value || 0);
+    if (id) {
+      await api(`/admin/products/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    } else {
+      await api("/admin/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    }
+    productMsg.textContent = id ? "تم تحديث المنتج." : "تم إضافة المنتج ✓";
+    resetProductForm();
+    await renderProducts();
+  } catch (err) {
+    productMsg.textContent = "تعذر حفظ المنتج: " + (err.message || "");
+  } finally {
+    _savingProduct = false;
+    if (btn) { btn.disabled = false; btn.textContent = "حفظ المنتج"; }
   }
-  productMsg.textContent = id ? "تم تحديث المنتج." : "تم إضافة المنتج.";
-  resetProductForm();
-  await renderProducts();
 };
 
 const saveHeroSlide = async () => {
@@ -838,9 +851,7 @@ if (createStaffBtn) {
 }
 
 document.getElementById("saveProductBtn")?.addEventListener("click", () => {
-  saveProduct().catch(() => {
-    productMsg.textContent = "تعذر حفظ المنتج.";
-  });
+  saveProduct();
 });
 
 document.getElementById("saveHeroBtn")?.addEventListener("click", () => {

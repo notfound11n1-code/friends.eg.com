@@ -135,6 +135,37 @@ const parseJsonField = (value, fallback) => {
 
 const sanitizePhone = (value = "") => String(value).replace(/\D/g, "");
 
+// --- Case conversion utilities for Supabase compatibility ---
+const camelToSnake = (str) => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+const snakeToCamel = (str) => str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+
+const convertKeysToSnake = (obj) => {
+  if (obj === null || obj === undefined) return obj;
+  if (Array.isArray(obj)) return obj.map(convertKeysToSnake);
+  if (typeof obj === 'object' && !(obj instanceof Date)) {
+    const result = {};
+    for (const [key, value] of Object.entries(obj)) {
+      result[camelToSnake(key)] = convertKeysToSnake(value);
+    }
+    return result;
+  }
+  return obj;
+};
+
+const convertKeysToCamel = (obj) => {
+  if (obj === null || obj === undefined) return obj;
+  if (Array.isArray(obj)) return obj.map(convertKeysToCamel);
+  if (typeof obj === 'object' && !(obj instanceof Date)) {
+    const result = {};
+    for (const [key, value] of Object.entries(obj)) {
+      result[snakeToCamel(key)] = convertKeysToCamel(value);
+    }
+    return result;
+  }
+  return obj;
+};
+
+
 const readJsonSafe = async (filePath, fallback) => {
   try {
     const raw = await readFile(filePath, "utf8");
@@ -147,7 +178,13 @@ const readJsonSafe = async (filePath, fallback) => {
 };
 
 const writeJsonSafe = async (filePath, val) => {
-  await writeFile(filePath, JSON.stringify(val, null, 2), "utf8");
+  try {
+    const dir = path.dirname(filePath);
+    await mkdir(dir, { recursive: true });
+    await writeFile(filePath, JSON.stringify(val, null, 2), "utf8");
+  } catch (e) {
+    console.warn("writeJsonSafe failed:", e.message);
+  }
 };
 
 const ensureDataFiles = async () => {
@@ -234,7 +271,7 @@ const readSupabaseTable = async (table, fallback = []) => {
       console.warn(`Supabase read failed for ${table}:`, error.message);
       return fallback;
     }
-    return data ?? fallback;
+    return convertKeysToCamel(data ?? fallback);
   } catch (e) {
     console.warn(`Supabase read error for ${table}:`, e.message);
     return fallback;
@@ -243,12 +280,41 @@ const readSupabaseTable = async (table, fallback = []) => {
 
 const writeSupabaseTable = async (table, rows) => {
   if (!supabase) return false;
-  const { error } = await supabase.from(table).upsert(rows, { onConflict: "id" });
-  if (error) {
-    console.warn(`Supabase write failed for ${table}:`, error.message);
-    return false;
-  }
-  return true;
+  const tryWrite = async (rowsData, label) => {
+    try {
+      // First try upsert with onConflict
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      const { error } = await supabase.from(table).upsert(rowsData, { onConflict: "id" }).abortSignal(controller.signal);
+      clearTimeout(timeout);
+      if (!error) return true;
+      
+      // If upsert fails (maybe no unique constraint), try plain insert
+      if (Array.isArray(rowsData) && rowsData.length === 1) {
+        const controller2 = new AbortController();
+        const timeout2 = setTimeout(() => controller2.abort(), 10000);
+        const { error: error2 } = await supabase.from(table).insert(rowsData).abortSignal(controller2.signal);
+        clearTimeout(timeout2);
+        if (!error2) return true;
+        console.warn(`Supabase ${label} write failed for ${table}:`, error2.message, error2.code, error2.details);
+      } else {
+        console.warn(`Supabase ${label} upsert failed for ${table}:`, error.message, error.code, error.details);
+      }
+      return false;
+    } catch (e) {
+      console.warn(`Supabase ${label} write error for ${table}:`, e.message);
+      return false;
+    }
+  };
+  
+  // Try original camelCase keys first
+  if (await tryWrite(rows, "camelCase")) return true;
+  
+  // If camelCase failed, try snake_case conversion
+  const snakeRows = Array.isArray(rows) ? rows.map(convertKeysToSnake) : convertKeysToSnake(rows);
+  if (await tryWrite(snakeRows, "snakeCase")) return true;
+  
+  return false;
 };
 
 const readProducts = async () => {
@@ -418,6 +484,48 @@ pageRoutes.forEach(([route, target]) => {
   });
 });
 
+
+// Diagnostic endpoint to test Supabase write
+app.get("/api/debug-write", async (req, res) => {
+  if (!supabase) return res.json({ error: "supabase not configured" });
+  try {
+    // Test: try to upsert a test row to users table
+    const testRow = { id: "test-diagnostic-" + Date.now(), name: "Test", email: "diagnostic@test.local", role: "user" };
+    const snakeRow = convertKeysToSnake(testRow);
+    const { data, error } = await supabase.from("users").insert([snakeRow]).select();
+    
+    // Clean up: delete the test row
+    if (!error) {
+      await supabase.from("users").delete().eq("id", testRow.id);
+    }
+    
+    res.json({ 
+      insertSuccess: !error, 
+      error: error ? { message: error.message, code: error.code, details: error.details, hint: error.hint } : null,
+      insertedData: data
+    });
+  } catch (e) {
+    res.json({ error: e.message });
+  }
+});
+
+// Diagnostic endpoint for products table schema
+app.get("/api/debug-schema/:table", async (req, res) => {
+  if (!supabase) return res.json({ error: "supabase not configured" });
+  try {
+    const { data, error } = await supabase.from(req.params.table).select("*").limit(1);
+    if (error) {
+      return res.json({ error: error.message, code: error.code, details: error.details, hint: error.hint });
+    }
+    if (data && data.length > 0) {
+      return res.json({ columns: Object.keys(data[0]), sample: data[0] });
+    }
+    return res.json({ columns: [], message: "table is empty, no columns to show" });
+  } catch (e) {
+    res.json({ error: e.message });
+  }
+});
+
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, time: new Date().toISOString() });
 });
@@ -515,6 +623,7 @@ app.post("/api/auth/login", async (req, res) => {
 });
 
 app.post("/api/auth/register", async (req, res) => {
+  try {
   const { name, email, password, phone, address, country, altPhone, termsAccepted } = req.body || {};
   // allow either email+password or phone-based registration
   const missingFields = [];
@@ -566,6 +675,10 @@ app.post("/api/auth/register", async (req, res) => {
   const authPayload = buildAuthPayload(user);
   const token = jwt.sign(authPayload, JWT_SECRET, { expiresIn: TOKEN_EXPIRES });
   res.status(201).json({ token, user: authPayload });
+  } catch (e) {
+    console.error("Register error:", e.message);
+    res.status(500).json({ error: "register_failed", message: e.message });
+  }
 });
 
 app.get("/api/auth/me", requireAuth, (req, res) => {
@@ -1107,6 +1220,7 @@ app.get("/api/admin/products", requireAuth, requirePermission("catalog.manage"),
 });
 
 app.post("/api/admin/products", requireAuth, requirePermission("catalog.manage"), async (req, res) => {
+  try {
   const products = await readProducts();
   const payload = req.body || {};
   if (!payload.name || Number(payload.price) <= 0 || !payload.category) {
@@ -1152,9 +1266,14 @@ app.post("/api/admin/products", requireAuth, requirePermission("catalog.manage")
   products.push(product);
   await writeProducts(products);
   res.status(201).json(product);
+  } catch (e) {
+    console.error("Add product error:", e.message);
+    res.status(500).json({ error: "product_add_failed", message: e.message });
+  }
 });
 
 app.put("/api/admin/products/:id", requireAuth, requirePermission("catalog.manage"), async (req, res) => {
+  try {
   const products = await readProducts();
   const id = Number(req.params.id);
   const index = products.findIndex(p => p.id === id);
@@ -1203,15 +1322,28 @@ app.put("/api/admin/products/:id", requireAuth, requirePermission("catalog.manag
   products[index] = updated;
   await writeProducts(products);
   res.json(updated);
+  } catch (e) {
+    console.error("Update product error:", e.message);
+    res.status(500).json({ error: "update_failed", message: e.message });
+  }
 });
 
 app.delete("/api/admin/products/:id", requireAuth, requirePermission("catalog.manage"), async (req, res) => {
+  try {
   const products = await readProducts();
   const id = Number(req.params.id);
   const next = products.filter(p => p.id !== id);
   if (next.length === products.length) return res.status(404).json({ error: "not_found" });
+  // Delete from Supabase directly
+  if (supabase) {
+    await supabase.from("products").delete().eq("id", id);
+  }
   await writeProducts(next);
   res.json({ ok: true });
+  } catch (e) {
+    console.error("Delete product error:", e.message);
+    res.status(500).json({ error: "delete_failed", message: e.message });
+  }
 });
 
 app.get("/api/admin/hero", requireAuth, requirePermission("catalog.manage"), async (req, res) => {

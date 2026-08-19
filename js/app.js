@@ -767,8 +767,8 @@ async function applyCouponCode() {
 }
 
 const paymentChannels = {
-  "Vodafone Cash": { transferTo: "010xxxxxxxxx", transferAccount: "Vodafone Wallet - FRIENDS" },
-  InstaPay: { transferTo: "xxxxxxxxxxx@instapay", transferAccount: "Ahly Bank - FRIENDS Store" }
+  "Vodafone Cash": { transferTo: "01097270537", transferAccount: "Vodafone Wallet - FRIENDS" },
+  InstaPay: { transferTo: "01097270537@instapay", transferAccount: "InstaPay - FRIENDS" }
 };
 
 let transferProofFile = null;

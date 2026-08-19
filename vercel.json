@@ -67,6 +67,10 @@
       "dest": "/track.html"
     },
     {
+      "src": "/warranty",
+      "dest": "/warranty.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }

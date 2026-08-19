@@ -101,27 +101,50 @@ const normalizeRole = (role) => {
 const getRolePermissions = (role) => rolePermissions[normalizeRole(role)] || [];
 const hasPermission = (role, permission) => getRolePermissions(role).includes(permission);
 
-const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    try {
-      await mkdir(UPLOAD_DIR, { recursive: true });
-      cb(null, UPLOAD_DIR);
-    } catch (error) {
-      cb(error, UPLOAD_DIR);
-    }
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname || "").toLowerCase() || ".jpg";
-    cb(null, `${Date.now()}-${uuidv4()}${ext}`);
-  }
-});
-
+// Use memory storage for multer (files are in req.file.buffer)
 const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }
 });
 
-const toUploadPath = (file) => (file ? `images/uploads/${file.filename}` : "");
+// Upload to catbox.moe - free image hosting
+const uploadToCatbox = async (file) => {
+  if (!file) return "";
+  try {
+    const FormData = (await import('form-data')).default;
+    const form = new FormData();
+    form.append('reqtype', 'fileupload');
+    form.append('fileToUpload', file.buffer, {
+      filename: file.originalname || `upload-${Date.now()}${path.extname(file.originalname || ".jpg")}`,
+      contentType: file.mimetype || 'image/jpeg'
+    });
+    
+    const response = await fetch('https://catbox.moe/user/api.php', {
+      method: 'POST',
+      body: form,
+      headers: form.getHeaders()
+    });
+    
+    if (!response.ok) {
+      console.warn('Catbox upload failed:', response.status);
+      return "";
+    }
+    
+    const url = (await response.text()).trim();
+    if (url.startsWith('https://')) return url;
+    console.warn('Catbox unexpected response:', url);
+    return "";
+  } catch (e) {
+    console.warn('Catbox upload error:', e.message);
+    return "";
+  }
+};
+
+const toUploadPath = async (file) => {
+  if (!file) return "";
+  // Upload to catbox.moe and return the URL
+  return await uploadToCatbox(file);
+};
 
 const parseJsonField = (value, fallback) => {
   if (value === undefined || value === null || value === "") return fallback;
@@ -172,6 +195,14 @@ const SUPABASE_COLUMNS = {
   hero: new Set(["id", "title", "subtitle", "image", "link", "badge", "active", "data"]),
   orders: new Set(["id", "status", "statusHistory", "customer", "items", "totals", "payment", "reviewToken", "reviewTokenUsed", "adminAccessToken", "transferProofImage", "deliveryProofImage", "createdAt", "data"]),
   reviews: new Set(["id", "orderId", "reviewToken", "courierRating", "courierComment", "productFeedback", "visible", "createdAt", "data"]),
+  promotions: new Set(["id", "code", "value", "type", "createdAt", "expiresAt", "uses", "maxUses", "data"]),
+  activities: new Set(["id", "message", "email", "createdAt", "data"]),
+  prescriptions: new Set(["id", "userId", "userEmail", "image", "status", "createdAt", "data"]),
+  support_questions: new Set(["id", "userId", "subject", "message", "productId", "status", "createdAt", "data"]),
+  support_tickets: new Set(["id", "userId", "userEmail", "title", "subject", "priority", "status", "messages", "createdAt", "data"]),
+  returns: new Set(["id", "userId", "orderId", "reason", "status", "photos", "createdAt", "data"]),
+  user_lists: new Set(["id", "userId", "name", "type", "items", "createdAt", "data"]),
+  warranties: new Set(["id", "userId", "userEmail", "orderId", "productId", "serialNumber", "productImage", "customerName", "customerPhone", "customerAddress", "status", "createdAt", "data"]),
 };
 
 const filterForSupabase = (table, row) => {
@@ -946,7 +977,7 @@ app.post("/api/orders", upload.single("transferProofImage"), async (req, res) =>
       provider: payment.provider,
       transferTo: payment.transferTo,
       transferAccount: payment.transferAccount || "",
-      transferProofImage: toUploadPath(req.file),
+      transferProofImage: await toUploadPath(req.file),
       transferRef: String(payment.transferRef || "")
     },
     totals
@@ -1142,7 +1173,7 @@ app.patch("/api/admin/orders/:id/delivered", requireAuth, requirePermission("ord
   next.reviewToken = reviewToken;
   next.reviewTokenUsed = false;
   next.delivery = {
-    proofImage: toUploadPath(req.file),
+    proofImage: await toUploadPath(req.file),
     courierNote
   };
   next.statusHistory.push({ status: "delivered", label: statusLabels.delivered, at: now, note: "المندوب أكد التسليم." });
@@ -1480,8 +1511,14 @@ const TICKETS_PATH = path.join(DATA_DIR, "support_tickets.json");
 const RETURNS_PATH = path.join(DATA_DIR, "returns.json");
 const USER_LISTS_PATH = path.join(DATA_DIR, "user_lists.json");
 
-const readActivities = async () => readJsonSafe(ACTIVITY_PATH, []);
-const writeActivities = async (v) => writeJsonSafe(ACTIVITY_PATH, v);
+const readActivities = async () => supabase ? await readSupabaseTable("activities", []) : readJsonSafe(ACTIVITY_PATH, []);
+const writeActivities = async (v) => {
+  if (supabase) {
+    const ok = await writeSupabaseTable("activities", v);
+    if (ok) return;
+  }
+  await writeJsonSafe(ACTIVITY_PATH, v);
+};
 const pushActivity = async (entry, user) => {
   try {
     const list = await readActivities();
@@ -1496,15 +1533,21 @@ const pushActivity = async (entry, user) => {
 };
 
 const readUndoQueue = async () => readJsonSafe(UNDO_PATH, []);
-const writeUndoQueue = async (v) => writeJsonSafe(UNDO_PATH, v);
+const writeUndoQueue = async (v) => writeJsonSafe(UNDO_PATH, v); // undo is transient, keep local
 
-const readPrescriptions = async () => readJsonSafe(PRESCRIPTIONS_PATH, []);
-const writePrescriptions = async (v) => writeJsonSafe(PRESCRIPTIONS_PATH, v);
+const readPrescriptions = async () => supabase ? await readSupabaseTable("prescriptions", []) : readJsonSafe(PRESCRIPTIONS_PATH, []);
+const writePrescriptions = async (v) => { if (supabase) { const ok = await writeSupabaseTable("prescriptions", v); if (ok) return; } await writeJsonSafe(PRESCRIPTIONS_PATH, v); };
 
-const readPromotions = async () => readJsonSafe(PROMOTIONS_PATH, []);
-const writePromotions = async (v) => writeJsonSafe(PROMOTIONS_PATH, v);
-const readSupport = async () => readJsonSafe(SUPPORT_PATH, []);
-const writeSupport = async (v) => writeJsonSafe(SUPPORT_PATH, v);
+const readPromotions = async () => supabase ? await readSupabaseTable("promotions", []) : readJsonSafe(PROMOTIONS_PATH, []);
+const writePromotions = async (v) => {
+  if (supabase) {
+    const ok = await writeSupabaseTable("promotions", v);
+    if (ok) return;
+  }
+  await writeJsonSafe(PROMOTIONS_PATH, v);
+};
+const readSupport = async () => supabase ? await readSupabaseTable("support_questions", []) : readJsonSafe(SUPPORT_PATH, []);
+const writeSupport = async (v) => { if (supabase) { const ok = await writeSupabaseTable("support_questions", v); if (ok) return; } await writeJsonSafe(SUPPORT_PATH, v); };
 
 const resolveCouponMeta = async (code, subtotal = 0) => {
   const normalized = String(code || "").trim().toUpperCase();
@@ -1529,12 +1572,12 @@ const resolveCouponMeta = async (code, subtotal = 0) => {
   if (!fallbackRate) return { valid: false, code: normalized, type: "percent", value: 0, message: "not_found" };
   return { valid: true, code: normalized, type: "percent", value: fallbackRate * 100, rate: fallbackRate, message: "ok" };
 };
-const readTickets = async () => readJsonSafe(TICKETS_PATH, []);
-const writeTickets = async (v) => writeJsonSafe(TICKETS_PATH, v);
-const readReturns = async () => readJsonSafe(RETURNS_PATH, []);
-const writeReturns = async (v) => writeJsonSafe(RETURNS_PATH, v);
-const readUserLists = async () => readJsonSafe(USER_LISTS_PATH, []);
-const writeUserLists = async (v) => writeJsonSafe(USER_LISTS_PATH, v);
+const readTickets = async () => supabase ? await readSupabaseTable("support_tickets", []) : readJsonSafe(TICKETS_PATH, []);
+const writeTickets = async (v) => { if (supabase) { const ok = await writeSupabaseTable("support_tickets", v); if (ok) return; } await writeJsonSafe(TICKETS_PATH, v); };
+const readReturns = async () => supabase ? await readSupabaseTable("returns", []) : readJsonSafe(RETURNS_PATH, []);
+const writeReturns = async (v) => { if (supabase) { const ok = await writeSupabaseTable("returns", v); if (ok) return; } await writeJsonSafe(RETURNS_PATH, v); };
+const readUserLists = async () => supabase ? await readSupabaseTable("user_lists", []) : readJsonSafe(USER_LISTS_PATH, []);
+const writeUserLists = async (v) => { if (supabase) { const ok = await writeSupabaseTable("user_lists", v); if (ok) return; } await writeJsonSafe(USER_LISTS_PATH, v); };
 
 // Support Tickets (simple ticket + chat via messages array)
 app.post('/api/support/tickets', requireAuth, async (req, res) => {
@@ -1640,7 +1683,7 @@ app.get('/api/recommendations', requireAuth, async (req, res) => {
 app.post('/api/returns', requireAuth, upload.array('photos', 6), async (req, res) => {
   const { orderId, reason, details } = req.body || {};
   if (!orderId || !reason) return res.status(400).json({ error: 'missing_fields' });
-  const files = (req.files || []).map(f => `/images/uploads/${path.basename(f.path)}`);
+  const files = await Promise.all((req.files || []).map(f => uploadToCatbox(f)));
   const list = await readReturns();
   const entry = { id: uuidv4(), userId: req.user.id, orderId: String(orderId), reason: String(reason), details: String(details || ''), photos: files, status: 'requested', createdAt: new Date().toISOString() };
   list.unshift(entry);
@@ -1703,6 +1746,68 @@ app.post('/api/coupons/redeem', requireAuth, async (req, res) => {
   p.uses = (p.uses||0) + 1; await writePromotions(promos);
   await pushActivity(`كوبون ${p.code} تم استخدامه من ${req.user.email} لطلب ${orderId||'N/A'}`, req.user.email);
   res.json({ success: true, coupon: p, discountRate: String(p.type).toLowerCase() === 'percent' ? Number(p.value || 0) / 100 : 0 });
+});
+
+
+// Warranty activation
+app.post('/api/warranties', requireAuth, upload.single('productImage'), async (req, res) => {
+  try {
+    const { orderId, productId, serialNumber, customerName, customerPhone, customerAddress } = req.body || {};
+    if (!orderId || !serialNumber) return res.status(400).json({ error: 'missing_fields' });
+    
+    const productImage = await toUploadPath(req.file);
+    
+    const warranty = {
+      id: uuidv4(),
+      userId: req.user.id,
+      userEmail: req.user.email,
+      orderId: String(orderId),
+      productId: String(productId || ''),
+      serialNumber: String(serialNumber),
+      productImage,
+      customerName: String(customerName || req.user.name || ''),
+      customerPhone: String(customerPhone || ''),
+      customerAddress: String(customerAddress || ''),
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+    
+    const list = await readSupabaseTable("warranties", []);
+    list.push(warranty);
+    if (supabase) {
+      await writeSupabaseTable("warranties", list);
+    }
+    await pushActivity(`طلب تفعيل ضمان جديد - أوردر #${orderId} - سيريال: ${serialNumber}`, req.user.email);
+    res.status(201).json(warranty);
+  } catch (e) {
+    console.warn('Warranty creation error:', e.message);
+    res.status(500).json({ error: 'server_error' });
+  }
+});
+
+app.get('/api/warranties', requireAuth, async (req, res) => {
+  const list = await readSupabaseTable("warranties", []);
+  const mine = list.filter(w => String(w.userId) === String(req.user.id));
+  res.json(mine);
+});
+
+app.get('/api/warranties/all', requireAuth, requirePermission('staff.manage'), async (req, res) => {
+  const list = await readSupabaseTable("warranties", []);
+  res.json(list);
+});
+
+app.patch('/api/warranties/:id/status', requireAuth, requirePermission('staff.manage'), async (req, res) => {
+  const { status } = req.body || {};
+  if (!status) return res.status(400).json({ error: 'missing_status' });
+  const list = await readSupabaseTable("warranties", []);
+  const idx = list.findIndex(w => w.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'not_found' });
+  list[idx].status = String(status);
+  if (supabase) {
+    await writeSupabaseTable("warranties", list);
+  }
+  await pushActivity(`تم تحديث حالة الضمان ${req.params.id} إلى ${status}`, req.user.email);
+  res.json(list[idx]);
 });
 
 // Support Q&A
@@ -1867,7 +1972,7 @@ app.get("/api/search", async (req, res) => {
 // Prescriptions: user upload and admin review queue
 app.post("/api/prescriptions", requireAuth, upload.single("image"), async (req, res) => {
   const notes = String(req.body.notes || "").trim();
-  const img = toUploadPath(req.file);
+  const img = await toUploadPath(req.file);
   if (!img) return res.status(400).json({ error: "image_required" });
   const list = await readPrescriptions();
   const item = { id: uuidv4(), userId: req.user?.id || null, image: img, notes, status: "pending", createdAt: new Date().toISOString() };
@@ -1916,7 +2021,7 @@ app.get('/api/admin/export/products', requireAuth, requirePermission('catalog.ma
 
 app.post('/api/admin/import/products', requireAuth, requirePermission('catalog.manage'), upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'file_required' });
-  const buf = await readFile(req.file.path);
+  const buf = req.file.buffer;
   const text = buf.toString('utf8');
   const lines = text.split(/\r?\n/).filter(Boolean);
   if (!lines.length) return res.status(400).json({ error: 'empty_file' });

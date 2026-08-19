@@ -3,26 +3,34 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title data-i18n="title.terms">FRIENDS | الشروط والأحكام</title>
+  <title>FRIENDS | الشروط والأحكام</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Harmattan:wght@400;600;700&family=Reem+Kufi:wght@400;500;600;700&family=Changa:wght@400;600;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .terms-content { max-width: 800px; margin: 0 auto; line-height: 2; font-size: 15px; color: #334155; }
+    .terms-content h2 { color: #1e293b; margin-top: 28px; margin-bottom: 12px; font-size: 22px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    .terms-content h3 { color: #334155; margin-top: 20px; margin-bottom: 8px; font-size: 18px; }
+    .terms-content ul { padding-right: 24px; margin-bottom: 16px; }
+    .terms-content li { margin-bottom: 8px; }
+    .terms-content p { margin-bottom: 14px; }
+    .terms-content strong { color: #0f172a; }
+    .terms-section { background: #f8fafc; border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  </style>
 </head>
 <body data-page="terms">
-  <!-- Announcement -->
   <div class="announcement">
     <div class="container announcement-inner">
       <div class="announcement-brand-slogan">
         <span class="announcement-pulse-dot"></span>
-        <strong class="slogan-text" data-i18n="announcement.slogan">ثقتكم .. مسؤوليتنا الطبية</strong>
+        <strong class="slogan-text">ثقتكم .. مسؤوليتنا الطبية</strong>
         <span class="announcement-sep">•</span>
-        <span class="announcement-sub" data-i18n="terms.announcement">الشروط والأحكام وسياسة الاسترجاع</span>
+        <span class="announcement-sub">مستلزمات وأجهزة طبية أصلية 100%</span>
       </div>
       <div class="announcement-quick-info">
         <a href="tel:01061806140" class="announcement-contact" dir="ltr">
-          <span class="contact-icon">📞</span>
-          <span>01061806140</span>
+          <span class="contact-icon">📞</span><span>01061806140</span>
         </a>
       </div>
     </div>
@@ -31,119 +39,163 @@
   <header class="site-header">
     <div class="container header-inner">
       <a class="brand" href="index.html" aria-label="Friends Medical Supplies">
-        <div class="logo">
-          <img src="images/friends-logo.svg" alt="Friends For Medical Supplies - فريندز للمستلزمات الطبية" />
-        </div>
+        <div class="logo"><img src="images/friends-logo.svg" alt="Friends For Medical Supplies" /></div>
       </a>
-
       <nav class="main-nav">
-        <a class="nav-link" href="index.html"><span class="nav-icon">⌂</span><span data-i18n="nav.home">الرئيسية</span></a>
-        <a class="nav-link" href="index.html#offers"><span class="nav-icon-badge">%</span><span data-i18n="nav.offers">العروض</span></a>
-        <a class="nav-link" href="index.html#categories"><span class="nav-icon">▦</span><span data-i18n="nav.categories">الأقسام</span></a>
-        <a class="nav-link" href="track.html"><span class="nav-icon">◎</span><span data-i18n="nav.track">تتبع الطلب</span></a>
+        <a class="nav-link" href="index.html"><span class="nav-icon">⌂</span>الرئيسية</a>
+        <a class="nav-link" href="index.html#products"><span class="nav-icon">◫</span>المنتجات</a>
+        <a class="nav-link" href="track.html"><span class="nav-icon">◎</span>تتبع الطلب</a>
+        <a class="nav-link" href="warranty.html"><span class="nav-icon">🛡</span>تفعيل الضمان</a>
       </nav>
-
-      <div class="header-actions">
-        <div class="header-user-actions">
-          <a class="header-cart-btn" href="cart.html" aria-label="عربة التسوق">
-            <span class="cart-icon-wrap">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-              <span class="cart-count-badge" id="headerCartCount" style="display:none;">0</span>
-            </span>
-            <span class="cart-btn-label" data-i18n="nav.cart">السلة</span>
-          </a>
-        </div>
-      </div>
     </div>
   </header>
 
   <main>
-    <section class="section terms-page">
+    <section class="section">
       <div class="container">
-        <div class="terms-lang terms-lang-ar">
-          <div class="terms-hero">
-            <h2>الشروط والأحكام</h2>
-            <p class="terms-meta">آخر تحديث: 23 مارس 2026</p>
-            <p class="terms-lead">
-              باستخدامك لموقع FRIENDS أو بإتمام أي طلب شراء، فأنت توافق على الالتزام بهذه الشروط والأحكام وسياسة الاسترجاع الموضحة أدناه.
-            </p>
-            <p class="terms-note">
-              هذه الصياغة تم إعدادها للحفاظ على الحقوق الملكية والمالية والفكرية للشركة، ويُفضّل مراجعتها قانونيًا قبل الاعتماد النهائي.
-            </p>
+        <div class="card terms-content">
+          <h1 style="text-align:center; margin-bottom: 24px;">📋 الشروط والأحكام</h1>
+
+          <div class="terms-section">
+            <h2>1. مقدمة</h2>
+            <p>مرحباً بك في متجر <strong>FRIENDS</strong> للمستلزمات الطبية والتجميلية. باستخدامك لهذا الموقع أو إجراء أي عملية شراء، فإنك توافق على الشروط والأحكام التالية. يرجى قراءتها بعناية.</p>
           </div>
 
-          <div class="terms-card">
-            <h3>1. نطاق الخدمة</h3>
-            <p>توفر الشركة منتجات ومستلزمات طبية عبر الموقع، ويجب استخدام الموقع بما يتوافق مع القوانين واللوائح المعمول بها.</p>
-
-            <h3>2. بيانات العميل</h3>
-            <p>يلتزم العميل بتقديم بيانات صحيحة ودقيقة وحديثة عند التسجيل والشراء، ويتحمل المسؤولية الكاملة عن أي معلومات غير صحيحة.</p>
-
-            <h3>3. الحقوق المالية والملكية الفكرية</h3>
-            <p>جميع المحتويات والعلامات التجارية والشعارات والتصاميم والنصوص في الموقع مملوكة للشركة أو مرخصة لها، ولا يجوز نسخها أو إعادة استخدامها أو استغلالها تجاريًا دون إذن كتابي مسبق.</p>
-            <p>يلتزم العميل بسداد كامل قيمة الطلب والرسوم ذات الصلة وفقًا للأسعار المعروضة وقت تأكيد الطلب.</p>
-
-            <h3>4. الاستخدام المسؤول للمنتجات</h3>
-            <p>المنتجات المعروضة هي مستلزمات طبية، ويجب استخدامها وفق الإرشادات والتعليمات الرسمية. لا تتحمل الشركة أي مسؤولية عن سوء الاستخدام أو مخالفة تعليمات الاستخدام.</p>
-
-            <h3>5. سياسة الاسترجاع</h3>
-            <ul class="terms-list">
-              <li>تكلفة الشحن على العميل في حالة إرجاع المنتج. في حالة عدم وجود سبب فني في المنتج</li>
-              <li>يُقبل المرتجع فقط إذا كان المنتج بنفس حالته وقت التسليم وبعبوته الأصلية وبحالة سليمة.</li>
+          <div class="terms-section">
+            <h2>2. الحساب والتسجيل</h2>
+            <ul>
+              <li>يجب أن تكون بيانات التسجيل صحيحة وكاملة (الاسم، رقم الهاتف، العنوان).</li>
+              <li>أنت مسؤول عن الحفاظ على سرية كلمة المرور الخاصة بحسابك.</li>
+              <li>يحق للمتجر إيقاف أو حذف أي حساب يستخدم بيانات غير صحيحة أو يخالف الشروط.</li>
+              <li>لا يجوز مشاركة الحساب مع أشخاص آخرين.</li>
             </ul>
-            <p>تحتفظ الشركة بحق فحص المنتج المرتجع قبل اعتماد الإرجاع أو الاستبدال.</p>
-
-            <h3>6. التعديلات والتحديثات</h3>
-            <p>يجوز للشركة تعديل هذه الشروط والأحكام أو تحديثها من وقت لآخر، وتصبح التعديلات نافذة فور نشرها على الموقع.</p>
-
-            <h3>7. التواصل والدعم</h3>
-            <p>لأي استفسارات تتعلق بالشروط أو بسياسة الاسترجاع، يرجى التواصل مع خدمة العملاء عبر القنوات الرسمية للموقع.</p>
-          </div>
-        </div>
-
-        <div class="terms-lang terms-lang-en">
-          <div class="terms-hero">
-            <h2>Terms &amp; Conditions</h2>
-            <p class="terms-meta">Last updated: March 23, 2026</p>
-            <p class="terms-lead">
-              By using the FRIENDS website or completing any purchase order, you agree to comply with these Terms &amp; Conditions and the Return Policy described below.
-            </p>
-            <p class="terms-note">
-              This wording was prepared to protect the company’s financial and intellectual property rights, and it is recommended to have it reviewed legally before final adoption.
-            </p>
           </div>
 
-          <div class="terms-card">
-            <h3>1. Service Scope</h3>
-            <p>The company provides medical products and supplies through the website, and the website must be used in compliance with applicable laws and regulations.</p>
-
-            <h3>2. Customer Information</h3>
-            <p>The customer must provide accurate, correct, and up-to-date information when registering and purchasing, and is fully responsible for any incorrect information.</p>
-
-            <h3>3. Financial &amp; Intellectual Property Rights</h3>
-            <p>All content, trademarks, logos, designs, and texts on the website are owned by the company or licensed to it, and may not be copied, reused, or commercially exploited without prior written permission.</p>
-            <p>The customer must pay the full order value and related fees according to the prices shown at the time of order confirmation.</p>
-
-            <h3>4. Responsible Use of Products</h3>
-            <p>The products offered are medical supplies and must be used according to official guidelines and instructions. The company bears no responsibility for misuse or failure to follow usage instructions.</p>
-
-            <h3>5. Return Policy</h3>
-            <ul class="terms-list">
-              <li>The shipping cost is borne by the customer in case of return.</li>
-              <li>Returns are accepted only if the product is in the same condition at delivery, in its original packaging, and in good condition.</li>
+          <div class="terms-section">
+            <h2>3. المنتجات والأسعار</h2>
+            <ul>
+              <li>نبذل قصارى جهدنا لعرض المنتجات والأسعار بدقة، ولكن قد تحدث أخطاء عرض أو تسعير غير مقصودة.</li>
+              <li>في حالة خطأ في السعر، نحتفظ بالحق في إلغاء الطلب واسترداد المبلغ كاملاً.</li>
+              <li>ألوان أو أشكال المنتجات قد تختلف قليلاً عن الصور المعروضة بسبب الإضاءة أو الشاشة.</li>
+              <li>المنتجات الطبية والأجهزة الكهربائية أصلية 100% ومستوردة من مصادر معتمدة.</li>
             </ul>
-            <p>The company reserves the right to inspect the returned product before approving a return or exchange.</p>
-
-            <h3>6. Amendments &amp; Updates</h3>
-            <p>The company may amend these terms and conditions from time to time, and amendments become effective once published on the website.</p>
-
-            <h3>7. Contact &amp; Support</h3>
-            <p>For any inquiries related to the terms or return policy, please contact customer service through the official channels.</p>
           </div>
+
+          <div class="terms-section">
+            <h2>4. الطلبات والدفع</h2>
+            <ul>
+              <li>بعد إتمام الطلب، تصلك رسالة تأكيد برقم الطلب على هاتفك أو بريدك الإلكتروني.</li>
+              <li>طرق الدفع المتاحة: الدفع عند الاستلام، التحويل البنكي، أو المحفظة الإلكترونية.</li>
+              <li>في حالة التحويل البنكي، يجب إرفاق إثبات التحويل (صورة الإيصال) لتأكيد الطلب.</li>
+              <li>الطلب لا يتم تأكيده إلا بعد مراجعة بياناتك والتأكد من توفر المنتج.</li>
+              <li>الشحن مجاني للطلبات فوق 300 جنيه، ويُضاف 25 جنيه للطلبات الأقل.</li>
+            </ul>
+          </div>
+
+          <div class="terms-section">
+            <h2>5. الشحن والتوصيل</h2>
+            <ul>
+              <li>مدة التوصيل من 2 إلى 5 أيام عمل حسب المحافظة.</li>
+              <li>يتم التواصل معك قبل الشحن لتأكيد العنوان والموعد.</li>
+              <li>في حالة عدم الرد على الهاتف بعد 3 محاولات، يتم إلغاء الطلب.</li>
+              <li>التوصيل داخل القاهرة والجيزة أسرع (1-2 يوم) مقارنة بالمحافظات الأخرى.</li>
+            </ul>
+          </div>
+
+          <div class="terms-section">
+            <h2>6. الاستبدال والاسترجاع</h2>
+            <ul>
+              <li>حق الاستبدال أو الاسترجاع خلال <strong>14 يوم</strong> من تاريخ الاستلام.</li>
+              <li>يجب أن يكون المنتج في حالته الأصلية بكامل ملحقاته وتغليفه.</li>
+              <li>المنتجات الطبية المستهلكة (شريط قياس، إبر، خافضات حرارة، سيتونات) لا تُسترجع لأسباب صحية.</li>
+              <li>في حالة وجود عيب مصنعي، يتم الاستبدال مجاناً أو استرداد المبلغ كاملاً.</li>
+              <li>تكلفة الشحن في حالة الاسترجاع تتحملها إدارة المتجر إذا كان السبب عيباً في المنتج.</li>
+            </ul>
+          </div>
+
+          <div class="terms-section">
+            <h2>7. الضمان</h2>
+            <ul>
+              <li>الضمان يشمل الأجهزة الطبية والكهربائية فقط، مدته <strong>12 شهر</strong> من تاريخ الشراء.</li>
+              <li>لتفعيل الضمان، استخدم صفحة <a href="warranty.html" style="color:#2563eb;">تفعيل الضمان</a> وارفع صورة المنتج مع السيريال نمبر ورقم الطلب.</li>
+              <li>الضمان يغطي عيوب الصناعة فقط ولا يشمل سوء الاستخدام أو الكسر أو التعرض للماء.</li>
+              <li>في حالة وجود عطل، تواصل معنا عبر الدعم الفني أو الواتساب لبدء إجراءات الصيانة.</li>
+              <li>يستحق العميل استبدال الجهاز خلال أول 14 يوم إذا ثبت عطل مصنعي غير قابل للصيانة.</li>
+            </ul>
+          </div>
+
+          <div class="terms-section">
+            <h2>8. الكوبونات والعروض</h2>
+            <ul>
+              <li>الكوبونات لها مدة صلاحية محددة وعدد استخدامات محدود.</li>
+              <li>لا يمكن دمج أكثر من كوبون في طلب واحد.</li>
+              <li>العروض والخصومات قد تتغير أو تنتهي دون إشعار مسبق.</li>
+              <li>الكوبون غير صالح على المنتات المخفضة بالفعل إلا إذا ذُكر خلاف ذلك.</li>
+            </ul>
+          </div>
+
+          <div class="terms-section">
+            <h2>9. التقييمات والمراجعات</h2>
+            <ul>
+              <li>يمكنك تقييم المنتجات والخدمة بعد استلام الطلب عبر رابط التقييم.</li>
+              <li>يجب أن تكون التقييمات حقيقية وملمومة بتجربة الشراء الفعلية.</li>
+              <li>يحق للمتجر إخفاء أو حذف التقييمات المسيئة أو غير الحقيقية.</li>
+            </ul>
+          </div>
+
+          <div class="terms-section">
+            <h2>10. الخصوصية وحماية البيانات</h2>
+            <ul>
+              <li>بياناتك الشخصية (الاسم، الهاتف، العنوان) تستخدم فقط لمعالجة الطلبات والتوصيل.</li>
+              <li>لا نشارك بياناتك مع أي طرف ثالث لأغراض تسويقية.</li>
+              <li>يمكنك طلب حذف بياناتك في أي وقت عبر التواصل معنا.</li>
+            </ul>
+          </div>
+
+          <div class="terms-section">
+            <h2>11. التواصل والدعم</h2>
+            <ul>
+              <li>للاستفسارات: واتساب <strong dir="ltr">+201061806140</strong></li>
+              <li>البريد الإلكتروني: <strong>hello@friends.store</strong></li>
+              <li>تذاكر الدعم متاحة من حسابك في الموقع.</li>
+              <li>ساعات العمل: السبت - الخميس، 9 صباحاً - 9 مساءً.</li>
+            </ul>
+          </div>
+
+          <div class="terms-section">
+            <h2>12. تعديل الشروط</h2>
+            <p>يحق لإدارة المتجر تعديل هذه الشروط في أي وقت، والنسخة المحدثة تنشر على هذه الصفحة. استمرارك في استخدام الموقع بعد التعديل يعني موافقتك على الشروط المحدثة.</p>
+          </div>
+
+          <p style="text-align:center; color:#64748b; margin-top:30px; font-size:13px;">
+            آخر تحديث: أغسطس 2026 — FRIENDS للمستلزمات الطبية
+          </p>
         </div>
       </div>
     </section>
   </main>
+
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="badge">FRIENDS</div>
+        <p>متجر منتجات طبية وتجميلية مختارة بمعايير جودة عالية.</p>
+      </div>
+      <div>
+        <h4>روابط سريعة</h4>
+        <p><a href="index.html">الرئيسية</a></p>
+        <p><a href="index.html#products">المنتجات</a></p>
+        <p><a href="track.html">تتبع الطلب</a></p>
+        <p><a href="warranty.html">تفعيل الضمان</a></p>
+        <p><a href="terms.html">الشروط والأحكام</a></p>
+      </div>
+      <div>
+        <h4>تواصل معنا</h4>
+        <p><span>رقم واتساب</span> | +201061806140</p>
+        <p><span>البريد</span>: hello@friends.store</p>
+      </div>
+    </div>
+  </footer>
 
   <script src="js/i18n.js"></script>
   <script src="js/ui.js"></script>

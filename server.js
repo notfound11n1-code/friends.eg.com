@@ -280,6 +280,10 @@ const readSupabaseTable = async (table, fallback = []) => {
 
 const writeSupabaseTable = async (table, rows) => {
   if (!supabase) return false;
+  
+  // Filter to only known columns, store extras in data JSONB
+  const filteredRows = (Array.isArray(rows) ? rows : [rows]).map(r => filterForSupabase(table, r));
+  
   const tryWrite = async (rowsData, label) => {
     try {
       // First try upsert with onConflict
@@ -290,13 +294,13 @@ const writeSupabaseTable = async (table, rows) => {
       if (!error) return true;
       
       // If upsert fails (maybe no unique constraint), try plain insert
-      if (Array.isArray(rowsData) && rowsData.length === 1) {
+      if (rowsData.length === 1) {
         const controller2 = new AbortController();
         const timeout2 = setTimeout(() => controller2.abort(), 10000);
         const { error: error2 } = await supabase.from(table).insert(rowsData).abortSignal(controller2.signal);
         clearTimeout(timeout2);
         if (!error2) return true;
-        console.warn(`Supabase ${label} write failed for ${table}:`, error2.message, error2.code, error2.details);
+        console.warn(`Supabase ${label} insert failed for ${table}:`, error2.message, error2.code, error2.details);
       } else {
         console.warn(`Supabase ${label} upsert failed for ${table}:`, error.message, error.code, error.details);
       }
@@ -307,11 +311,11 @@ const writeSupabaseTable = async (table, rows) => {
     }
   };
   
-  // Try original camelCase keys first
-  if (await tryWrite(rows, "camelCase")) return true;
+  // Try original camelCase keys first (filtered)
+  if (await tryWrite(filteredRows, "camelCase")) return true;
   
   // If camelCase failed, try snake_case conversion
-  const snakeRows = Array.isArray(rows) ? rows.map(convertKeysToSnake) : convertKeysToSnake(rows);
+  const snakeRows = filteredRows.map(convertKeysToSnake);
   if (await tryWrite(snakeRows, "snakeCase")) return true;
   
   return false;
@@ -320,7 +324,12 @@ const writeSupabaseTable = async (table, rows) => {
 const readProducts = async () => {
   if (supabase) {
     const items = await readSupabaseTable("products", []);
-    return Array.isArray(items) ? items.map(normalizeProduct) : [];
+    if (!Array.isArray(items)) return [];
+    // Merge data JSONB column back into product object
+    return items.map(p => {
+      const data = p.data || {};
+      return normalizeProduct({ ...data, ...p });
+    });
   }
   const items = await readJsonSafe(PRODUCTS_PATH, []);
   return Array.isArray(items) ? items.map(normalizeProduct) : [];
@@ -372,12 +381,17 @@ const readUsers = async () => {
   if (supabase) {
     const items = await readSupabaseTable("users", []);
     if (!Array.isArray(items)) return [];
-    return items.map(u => ({
-      ...u,
-      passwordHash: u.passwordHash || u.passwordhash || null,
-      fullName: u.fullName || u.fullname || u.full_name || null,
-      createdAt: u.createdAt || u.createdat || u.created_at || null
-    }));
+    return items.map(u => {
+      // Merge data JSONB column back into user object (for extra fields like altPhone, termsAcceptedAt)
+      const data = u.data || {};
+      return {
+        ...data,
+        ...u,
+        passwordHash: u.passwordHash || u.passwordhash || null,
+        fullName: u.fullName || u.fullname || u.full_name || null,
+        createdAt: u.createdAt || u.createdat || u.created_at || null
+      };
+    });
   }
   return readJsonSafe(USERS_PATH, []);
 };

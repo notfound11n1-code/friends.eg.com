@@ -168,12 +168,10 @@ const convertKeysToCamel = (obj) => {
 // --- Supabase column whitelists (only send known columns, store extras in data JSONB) ---
 const SUPABASE_COLUMNS = {
   users: new Set(["id", "email", "phone", "name", "passwordHash", "role", "address", "country", "createdAt", "data"]),
-  products: new Set(["id", "name", "short", "price", "category", "image", "images", "discount", "usage", "details", "brand", "sku", "stock", "rating", "reviews", "tags", "i18n", "data"]),
-  hero: new Set(["id", "title", "text", "image", "link", "data"]),
-  orders: new Set(["id", "data"]),
-  reviews: new Set(["id", "data"]),
-  tickets: new Set(["id", "data"]),
-  returns: new Set(["id", "data"]),
+  products: new Set(["id", "name", "price", "oldPrice", "category", "description", "images", "image", "brand", "stock", "rating", "reviewsCount", "badge", "createdAt", "data"]),
+  hero: new Set(["id", "title", "subtitle", "image", "link", "badge", "active", "data"]),
+  orders: new Set(["id", "status", "statusHistory", "customer", "items", "totals", "payment", "reviewToken", "reviewTokenUsed", "adminAccessToken", "transferProofImage", "deliveryProofImage", "createdAt", "data"]),
+  reviews: new Set(["id", "orderId", "reviewToken", "courierRating", "courierComment", "productFeedback", "visible", "createdAt", "data"]),
 };
 
 const filterForSupabase = (table, row) => {
@@ -355,10 +353,14 @@ const readProducts = async () => {
   if (supabase) {
     const items = await readSupabaseTable("products", []);
     if (!Array.isArray(items)) return [];
-    // Merge data JSONB column back into product object
+    // Map database columns back to code field names, merge data JSONB
     return items.map(p => {
       const data = p.data || {};
-      return normalizeProduct({ ...data, ...p });
+      const merged = { ...data, ...p };
+      // Map DB columns to code field names
+      if (p.description && !merged.short) merged.short = p.description;
+      if (p.reviewsCount !== undefined && merged.reviews === undefined) merged.reviews = p.reviewsCount;
+      return normalizeProduct(merged);
     });
   }
   const items = await readJsonSafe(PRODUCTS_PATH, []);
@@ -366,11 +368,27 @@ const readProducts = async () => {
 };
 const writeProducts = async (products) => {
   if (supabase) {
-    const rows = products.map(product => ({
-      ...product,
-      images: Array.isArray(product.images) ? product.images.filter(Boolean) : [],
-      image: product.image || ""
-    }));
+    const rows = products.map(product => {
+      // Map code field names to database column names, store extras in data JSONB
+      const { short, discount, usage, details, sku, tags, i18n, reviews, ...rest } = product;
+      const row = {
+        ...rest,
+        description: short || details || rest.description || "",
+        images: Array.isArray(product.images) ? product.images.filter(Boolean) : [],
+        image: product.image || "",
+        reviewsCount: reviews !== undefined ? Number(reviews) : (rest.reviewsCount || 0),
+      };
+      // Store extra fields that don't have dedicated columns in data JSONB
+      const extra = {};
+      if (discount !== undefined) extra.discount = discount;
+      if (usage !== undefined) extra.usage = usage;
+      if (details !== undefined) extra.details = details;
+      if (sku !== undefined) extra.sku = sku;
+      if (tags !== undefined) extra.tags = tags;
+      if (i18n !== undefined) extra.i18n = i18n;
+      if (Object.keys(extra).length > 0) row.data = { ...(row.data || {}), ...extra };
+      return row;
+    });
     const ok = await writeSupabaseTable("products", rows);
     if (ok) return;
   }
@@ -380,13 +398,25 @@ const writeProducts = async (products) => {
 const readHero = async () => {
   if (supabase) {
     const items = await readSupabaseTable("hero", []);
-    return Array.isArray(items) ? items : [];
+    if (!Array.isArray(items)) return [];
+    // Map DB columns to code field names, merge data JSONB
+    return items.map(s => {
+      const data = s.data || {};
+      const merged = { ...data, ...s };
+      if (s.subtitle && !merged.text) merged.text = s.subtitle;
+      return merged;
+    });
   }
   return readJsonSafe(HERO_PATH, []);
 };
 const writeHero = async (slides) => {
   if (supabase) {
-    const ok = await writeSupabaseTable("hero", slides);
+    // Map code field names to DB column names
+    const rows = slides.map(s => {
+      const { text, ...rest } = s;
+      return { ...rest, subtitle: text || s.subtitle || "" };
+    });
+    const ok = await writeSupabaseTable("hero", rows);
     if (ok) return;
   }
   await writeJsonSafe(HERO_PATH, slides);
@@ -395,7 +425,9 @@ const writeHero = async (slides) => {
 const readOrders = async () => {
   if (supabase) {
     const items = await readSupabaseTable("orders", []);
-    return Array.isArray(items) ? items : [];
+    if (!Array.isArray(items)) return [];
+    // Merge data JSONB column back
+    return items.map(o => ({ ...(o.data || {}), ...o }));
   }
   return readJsonSafe(ORDERS_PATH, []);
 };
@@ -436,7 +468,9 @@ const writeUsers = async (users) => {
 const readReviews = async () => {
   if (supabase) {
     const items = await readSupabaseTable("reviews", []);
-    return Array.isArray(items) ? items : [];
+    if (!Array.isArray(items)) return [];
+    // Merge data JSONB column back
+    return items.map(r => ({ ...(r.data || {}), ...r }));
   }
   return readJsonSafe(REVIEWS_PATH, []);
 };

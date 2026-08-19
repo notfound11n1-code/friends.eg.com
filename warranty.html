@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FRIENDS | تفعيل الضمان</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Harmattan:wght@400;600;700&family=Reem+Kufi:wght@400;500;600;700&family=Changa:wght@400;600;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .warranty-form { max-width: 640px; margin: 0 auto; }
+    .warranty-form .form-group { margin-bottom: 18px; }
+    .warranty-form label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .warranty-form input, .warranty-form textarea {
+      width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px;
+      font-family: inherit; font-size: 15px;
+    }
+    .warranty-form input:focus, .warranty-form textarea:focus {
+      outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+    .warranty-form .upload-area {
+      border: 2px dashed #ccc; border-radius: 12px; padding: 24px; text-align: center;
+      cursor: pointer; transition: all 0.2s; background: #f9fafb;
+    }
+    .warranty-form .upload-area:hover { border-color: #2563eb; background: #eff6ff; }
+    .warranty-form .upload-area.has-image { border-color: #22c55e; background: #f0fdf4; }
+    .warranty-form .upload-area img { max-width: 200px; max-height: 200px; border-radius: 8px; margin-top: 12px; }
+    .warranty-terms {
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin: 20px 0;
+      font-size: 14px; line-height: 1.8; color: #475569;
+    }
+    .warranty-terms h4 { color: #1e293b; margin-bottom: 10px; font-size: 16px; }
+    .warranty-terms ul { padding-right: 20px; }
+    .warranty-terms li { margin-bottom: 6px; }
+    .warranty-success { text-align: center; padding: 40px 20px; }
+    .warranty-success .success-icon { font-size: 64px; margin-bottom: 16px; }
+    .warranty-list { margin-top: 30px; }
+    .warranty-card {
+      border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin-bottom: 12px;
+      background: #fff; display: flex; gap: 16px; align-items: start;
+    }
+    .warranty-card img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; }
+    .warranty-status { padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .warranty-status.pending { background: #fef3c7; color: #92400e; }
+    .warranty-status.approved { background: #d1fae5; color: #065f46; }
+    .warranty-status.rejected { background: #fee2e2; color: #991b1b; }
+    .login-notice { text-align: center; padding: 40px 20px; }
+    .login-notice a { color: #2563eb; font-weight: 600; }
+  </style>
+</head>
+<body data-page="warranty">
+  <div class="announcement">
+    <div class="container announcement-inner">
+      <div class="announcement-brand-slogan">
+        <span class="announcement-pulse-dot"></span>
+        <strong class="slogan-text">ثقتكم .. مسؤوليتنا الطبية</strong>
+        <span class="announcement-sep">•</span>
+        <span class="announcement-sub">مستلزمات وأجهزة طبية أصلية 100%</span>
+      </div>
+      <div class="announcement-quick-info">
+        <a href="tel:01061806140" class="announcement-contact" dir="ltr">
+          <span class="contact-icon">📞</span><span>01061806140</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="Friends Medical Supplies">
+        <div class="logo">
+          <img src="images/friends-logo.svg" alt="Friends For Medical Supplies" />
+        </div>
+      </a>
+      <nav class="main-nav">
+        <a class="nav-link" href="index.html"><span class="nav-icon">⌂</span>الرئيسية</a>
+        <a class="nav-link" href="index.html#products"><span class="nav-icon">◫</span>المنتجات</a>
+        <a class="nav-link" href="track.html"><span class="nav-icon">◎</span>تتبع الطلب</a>
+        <a class="nav-link" href="warranty.html" style="color:#2563eb;font-weight:700;"><span class="nav-icon">🛡</span>تفعيل الضمان</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="card" style="max-width: 720px; margin: 0 auto;">
+          <h2 style="text-align:center; margin-bottom: 8px;">🛡 تفعيل الضمان</h2>
+          <p style="text-align:center; color:#64748b; margin-bottom: 24px;">
+            فعّل ضمان منتجك برفع صورة المنتج وإدخال السيريال نمبر ورقم الطلب
+          </p>
+
+          <div id="loginNotice" class="login-notice" style="display:none;">
+            <p style="font-size:18px; margin-bottom:12px;">🔐 يجب تسجيل الدخول أولاً لتفعيل الضمان</p>
+            <a href="index.html" class="btn primary" style="display:inline-block; padding:12px 32px;">تسجيل الدخول / إنشاء حساب</a>
+          </div>
+
+          <div id="warrantyFormWrap" style="display:none;">
+            <div class="warranty-terms">
+              <h4>📋 شروط تفعيل الضمان</h4>
+              <ul>
+                <li>الضمان يغطي الأجهزة الطبية والكهربائية فقط، ولا يشمل المستهلكات (شريط قياس، إبر، خافضات حرارة...).</li>
+                <li>مدة الضمان <strong>12 شهر</strong> من تاريخ الشراء، ما لم يذكر خلاف ذلك على المنتج.</li>
+                <li>يجب إرفاق صورة واضحة للمنتج مع رقم السيريال الموجود عليه أو على العبوة.</li>
+                <li>رقم الطلب (Order ID) هو الرقم الذي تلقيته عند إتمام عملية الشراء.</li>
+                <li>الضمان يغطي عيوب الصناعة فقط، ولا يغطي سوء الاستخدام أو الكسر أو التعرض للماء أو السقوط.</li>
+                <li>في حالة وجود عطل، يتم التواصل معنا عبر الواتساب أو الدعم الفني لبدء إجراءات الصيانة.</li>
+                <li>يستحق العميل استبدال الجهاز في حال ثبوت عطل مصنعي غير قابل للصيانة خلال أول 14 يوم.</li>
+                <li>بيانات الضمان محفوظة ومرتبطة بحسابك ويمكنك مراجعتها في أي وقت من هذه الصفحة.</li>
+              </ul>
+            </div>
+
+            <form id="warrantyForm" class="warranty-form">
+              <div class="form-group">
+                <label>رقم الطلب (Order ID) *</label>
+                <input id="wOrderId" type="text" placeholder="أول 8 أحرف من كود الطلب، مثال: a1b2c3d4" required />
+              </div>
+              <div class="form-group">
+                <label>السيريال نمبر (Serial Number) *</label>
+                <input id="wSerial" type="text" placeholder="الرقم التسلسلي الموجود على المنتج أو العبوة" required />
+              </div>
+              <div class="form-group">
+                <label>صورة المنتج *</label>
+                <div class="upload-area" id="wUploadArea">
+                  <p style="color:#64748b; margin:0;">📷 اضغط لاختيار صورة واضحة للمنتج مع السيريال</p>
+                  <input id="wImage" type="file" accept="image/*" style="display:none;" />
+                  <img id="wImagePreview" src="" alt="preview" style="display:none;" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>الاسم بالكامل</label>
+                <input id="wName" type="text" placeholder="اسمك الكامل" />
+              </div>
+              <div class="form-group">
+                <label>رقم الهاتف</label>
+                <input id="wPhone" type="tel" placeholder="01XXXXXXXXX" />
+              </div>
+              <div class="form-group">
+                <label>العنوان</label>
+                <textarea id="wAddress" rows="2" placeholder="العنوان بالكامل (المحافظة - المدينة - الشارع)"></textarea>
+              </div>
+              <button type="submit" class="btn primary" style="width:100%; padding:14px; font-size:16px;">تفعيل الضمان</button>
+              <p class="note" id="wMsg" style="text-align:center; margin-top:10px;"></p>
+            </form>
+
+            <div id="wSuccess" class="warranty-success" style="display:none;">
+              <div class="success-icon">✅</div>
+              <h3>تم تفعيل الضمان بنجاح!</h3>
+              <p style="color:#64748b;">طلبك قيد المراجعة وسيتم التأكيد خلال 24 ساعة.</p>
+              <button class="btn ghost" id="newWarrantyBtn" style="margin-top:16px;">تفعيل ضمان آخر</button>
+            </div>
+
+            <div class="warranty-list" id="warrantyList"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="badge">FRIENDS</div>
+        <p>متجر منتجات طبية وتجميلية مختارة بمعايير جودة عالية.</p>
+      </div>
+      <div>
+        <h4>روابط سريعة</h4>
+        <p><a href="index.html">الرئيسية</a></p>
+        <p><a href="index.html#products">المنتجات</a></p>
+        <p><a href="track.html">تتبع الطلب</a></p>
+        <p><a href="warranty.html">تفعيل الضمان</a></p>
+        <p><a href="terms.html">الشروط والأحكام</a></p>
+      </div>
+      <div>
+        <h4>تواصل معنا</h4>
+        <p><span>رقم واتساب</span> | +201061806140</p>
+        <p><span>البريد</span>: hello@friends.store</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    const API_BASE = window.location.origin + '/api';
+    let authToken = localStorage.getItem('friends_user_token') || localStorage.getItem('friends_admin_token') || '';
+    let selectedImageFile = null;
+
+    async function uploadToCatbox(file) {
+      const formData = new FormData();
+      formData.append('reqtype', 'fileupload');
+      formData.append('fileToUpload', file);
+      const resp = await fetch('https://catbox.moe/user/api.php', { method: 'POST', body: formData });
+      if (!resp.ok) throw new Error('Upload failed');
+      const url = (await resp.text()).trim();
+      if (!url.startsWith('https://')) throw new Error('Invalid: ' + url);
+      return url;
+    }
+
+    async function checkAuth() {
+      if (!authToken) {
+        document.getElementById('loginNotice').style.display = 'block';
+        document.getElementById('warrantyFormWrap').style.display = 'none';
+        return false;
+      }
+      try {
+        const res = await fetch(API_BASE + '/auth/me', { headers: { Authorization: 'Bearer ' + authToken } });
+        if (!res.ok) throw new Error('not logged in');
+        const user = await res.json();
+        document.getElementById('loginNotice').style.display = 'none';
+        document.getElementById('warrantyFormWrap').style.display = 'block';
+        if (user.name) document.getElementById('wName').value = user.name || '';
+        if (user.phone) document.getElementById('wPhone').value = user.phone || '';
+        if (user.address) document.getElementById('wAddress').value = user.address || '';
+        await loadWarranties();
+        return true;
+      } catch (e) {
+        document.getElementById('loginNotice').style.display = 'block';
+        document.getElementById('warrantyFormWrap').style.display = 'none';
+        return false;
+      }
+    }
+
+    async function loadWarranties() {
+      try {
+        const res = await fetch(API_BASE + '/warranties', { headers: { Authorization: 'Bearer ' + authToken } });
+        if (!res.ok) return;
+        const list = await res.json();
+        const el = document.getElementById('warrantyList');
+        if (!Array.isArray(list) || !list.length) { el.innerHTML = ''; return; }
+        const statusLabels = { pending: 'قيد المراجعة', approved: 'مفعّل', rejected: 'مرفوض' };
+        el.innerHTML = '<h3 style="margin-bottom:16px;">ضماناتك السابقة</h3>' + list.map(function(w) {
+          return '<div class="warranty-card">' +
+            (w.productImage ? '<img src="' + w.productImage + '" alt="product" />' : '') +
+            '<div style="flex:1;">' +
+            '<p><strong>أوردر #' + w.orderId + '</strong></p>' +
+            '<p>السيريال: <span style="font-family:monospace;">' + w.serialNumber + '</span></p>' +
+            '<p>التاريخ: ' + new Date(w.createdAt).toLocaleDateString('ar-EG') + '</p>' +
+            '<span class="warranty-status ' + w.status + '">' + (statusLabels[w.status] || w.status) + '</span>' +
+            '</div></div>';
+        }).join('');
+      } catch (e) { console.warn('Load warranties error:', e); }
+    }
+
+    var uploadArea = document.getElementById('wUploadArea');
+    var fileInput = document.getElementById('wImage');
+    var imagePreview = document.getElementById('wImagePreview');
+
+    uploadArea.addEventListener('click', function() { fileInput.click(); });
+    fileInput.addEventListener('change', function(e) {
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+      selectedImageFile = file;
+      var reader = new FileReader();
+      reader.onload = function() { imagePreview.src = reader.result; imagePreview.style.display = 'block'; uploadArea.classList.add('has-image'); };
+      reader.readAsDataURL(file);
+    });
+
+    function resetForm() {
+      document.getElementById('warrantyForm').reset();
+      selectedImageFile = null;
+      imagePreview.style.display = 'none';
+      uploadArea.classList.remove('has-image');
+    }
+
+    document.getElementById('newWarrantyBtn').addEventListener('click', function() {
+      document.getElementById('wSuccess').style.display = 'none';
+      document.getElementById('warrantyFormWrap').style.display = 'block';
+      resetForm();
+    });
+
+    document.getElementById('warrantyForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var msg = document.getElementById('wMsg');
+      msg.textContent = '';
+      var orderId = document.getElementById('wOrderId').value.trim();
+      var serialNumber = document.getElementById('wSerial').value.trim();
+      if (!orderId || !serialNumber) { msg.textContent = '⚠️ من فضلك أدخل رقم الطلب والسيريال نمبر'; msg.style.color = '#dc2626'; return; }
+      if (!selectedImageFile) { msg.textContent = '⚠️ من فضلك ارفع صورة المنتج'; msg.style.color = '#dc2626'; return; }
+      try {
+        msg.textContent = '⏳ جاري رفع الصورة وتفعيل الضمان...';
+        msg.style.color = '#2563eb';
+        var formData = new FormData();
+        formData.append('orderId', orderId);
+        formData.append('serialNumber', serialNumber);
+        formData.append('productImage', selectedImageFile);
+        formData.append('customerName', document.getElementById('wName').value.trim());
+        formData.append('customerPhone', document.getElementById('wPhone').value.trim());
+        formData.append('customerAddress', document.getElementById('wAddress').value.trim());
+        var res = await fetch(API_BASE + '/warranties', { method: 'POST', headers: { Authorization: 'Bearer ' + authToken }, body: formData });
+        if (!res.ok) { var err = await res.json().catch(function() { return {}; }); throw new Error(err.error || 'فشل التفعيل'); }
+        document.getElementById('warrantyFormWrap').style.display = 'none';
+        document.getElementById('wSuccess').style.display = 'block';
+        resetForm();
+        await loadWarranties();
+      } catch (err) { msg.textContent = '❌ ' + (err.message || 'حدث خطأ'); msg.style.color = '#dc2626'; }
+    });
+
+    checkAuth();
+  </script>
+</body>
+</html>

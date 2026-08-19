@@ -155,7 +155,7 @@ const convertKeysToSnake = (obj) => {
 const convertKeysToCamel = (obj) => {
   if (obj === null || obj === undefined) return obj;
   if (Array.isArray(obj)) return obj.map(convertKeysToCamel);
-  if (typeof obj === 'object' && !(obj instanceof Date)) {
+  if (typeof obj === "object" && !(obj instanceof Date)) {
     const result = {};
     for (const [key, value] of Object.entries(obj)) {
       result[snakeToCamel(key)] = convertKeysToCamel(value);
@@ -163,6 +163,36 @@ const convertKeysToCamel = (obj) => {
     return result;
   }
   return obj;
+};
+
+// --- Supabase column whitelists (only send known columns, store extras in data JSONB) ---
+const SUPABASE_COLUMNS = {
+  users: new Set(["id", "email", "phone", "name", "passwordHash", "role", "address", "country", "createdAt", "data"]),
+  products: new Set(["id", "name", "short", "price", "category", "image", "images", "discount", "usage", "details", "brand", "sku", "stock", "rating", "reviews", "tags", "i18n", "data"]),
+  hero: new Set(["id", "title", "text", "image", "link", "data"]),
+  orders: new Set(["id", "data"]),
+  reviews: new Set(["id", "data"]),
+  tickets: new Set(["id", "data"]),
+  returns: new Set(["id", "data"]),
+};
+
+const filterForSupabase = (table, row) => {
+  const allowed = SUPABASE_COLUMNS[table];
+  if (!allowed) return row;
+  const filtered = {};
+  const extra = {};
+  for (const [key, value] of Object.entries(row)) {
+    if (allowed.has(key)) {
+      filtered[key] = value;
+    } else if (value !== undefined && value !== null) {
+      extra[key] = value;
+    }
+  }
+  // Store extra fields in the data JSONB column
+  if (Object.keys(extra).length > 0) {
+    filtered.data = { ...(filtered.data && typeof filtered.data === "object" ? filtered.data : {}), ...extra };
+  }
+  return filtered;
 };
 
 
